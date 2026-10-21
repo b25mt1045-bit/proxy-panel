@@ -1,0 +1,12 @@
+{
+  "cases": [
+    {"if_contains": "remote tech workers", "response": {
+      "seeds": [{"name": "Allbirds", "type": "brand"}, {"name": "Patagonia", "type": "brand"},
+                {"name": "Lex Fridman Podcast", "type": "podcast"}, {"name": "Silicon Valley", "type": "tv_show"}],
+      "age": "30_to_34", "gender": null}},
+    {"if_contains": "eco-conscious renters", "response": {
+      "seeds": [{"name": "Trader Joe's", "type": "brand"}, {"name": "Thrive Market", "type": "brand"},
+                {"name": "Armchair Expert", "type": "podcast"}, {"name": "Schitt's Creek", "type": "tv_show"}],
+      "age": "25_to_29", "gender": "female"}}
+  ]
+}

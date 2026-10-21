@@ -1,0 +1,25 @@
+[project]
+name = "proxy-panel"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "httpx",
+    "pydantic",
+    "pydantic-settings",
+    "sqlalchemy[asyncio]",
+    "aiosqlite",
+    "asyncpg",
+]
+
+[dependency-groups]
+dev = ["pytest", "pytest-asyncio", "respx", "ruff"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120

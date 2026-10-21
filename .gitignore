@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+.claude/hooks/.edited-files
+__pycache__/
+*.db
+node_modules/
+.next/
+.venv/
+.pytest_cache/
+.ruff_cache/
