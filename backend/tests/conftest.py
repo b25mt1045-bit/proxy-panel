@@ -13,5 +13,8 @@ async def db(tmp_path):
 
 
 @pytest.fixture(autouse=True)
-def _reset_llm_mock():
+def _reset_llm_mock(monkeypatch):
+    # Tests never hit live services, whatever a local backend/.env says.
+    monkeypatch.setattr(llm.settings, "LLM_MOCK", True)
+    monkeypatch.setattr(llm.settings, "QLOO_MOCK", True)
     llm._mock_calls.clear()

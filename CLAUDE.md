@@ -14,7 +14,7 @@ When code lands, keep this file and the README's setup section in sync with it.
 
 ## Commands
 
-Built so far (days 1–2): `config, db, qloo, scoring, models, presets, prompts, llm, orchestrator, comparables, segments` and `scripts/record_fixtures.py`, with tests. `llm.py` has no real provider yet: it runs only in mock mode (`fixtures/llm/<prompt>.json`; a fixture can be one reply, a rotating list, or `{"cases": [{"if_contains"...}]}` matched on prompt text). Backend uses `uv` with Python 3.12 (`backend/pyproject.toml`). On this machine `uv` isn't on PATH, so call it as `python -m uv`. Run from `backend/`:
+Built so far (days 1–2): `config, db, qloo, scoring, models, presets, prompts, llm, orchestrator, comparables, segments` and `scripts/record_fixtures.py`, with tests. `llm.py` calls Gemini (free tier) over REST with httpx: `LLM_API_KEY`, `LLM_SMALL`, `LLM_BIG` from `backend/.env`; JSON via `responseJsonSchema`, one retry on timeout/5xx/429, Gemini 3 `thoughtSignature`s carried through tool turns. With `LLM_MOCK=1` it reads `fixtures/llm/<prompt>.json` instead (tests always force mocks; a fixture can be one reply, a rotating list, or `{"cases": [{"if_contains"...}]}` matched on prompt text). Backend uses `uv` with Python 3.12 (`backend/pyproject.toml`). On this machine `uv` isn't on PATH, so call it as `python -m uv`. Run from `backend/`:
 - Install: `python -m uv sync`
 - Tests: `python -m uv run pytest`. Single test: `python -m uv run pytest tests/test_scoring.py::test_price`. Tests use mocks and in-memory SQLite, with no keys needed.
 - Lint: `python -m uv run ruff check .`
