@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Early build (days 1–2 of the build order done). Proxy Panel is a pre-launch focus group: a product brief goes in, 6 personas built from Qloo taste data debate it, and a report says which segment to launch to, the objections, and the price band. Every claim cites Qloo data. Hackathon project (MVP due Oct 30, 2026).
+Early build (days 1–3 of the build order done). Proxy Panel is a pre-launch focus group: a product brief goes in, 6 personas built from Qloo taste data debate it, and a report says which segment to launch to, the objections, and the price band. Every claim cites Qloo data. Hackathon project (MVP due Oct 30, 2026).
 
 The two docs at the root are the source of truth. Read the relevant section before building a module:
 - `Proxy Panel — Product & Technical Spec.md`: what and why (scope, MVP vs stretch, validation, judging).
@@ -14,7 +14,7 @@ When code lands, keep this file and the README's setup section in sync with it.
 
 ## Commands
 
-Built so far (days 1–2): `config, db, qloo, scoring, models, presets, prompts, llm, orchestrator, comparables, segments` and `scripts/record_fixtures.py`, with tests. `llm.py` calls Gemini (free tier) over REST with httpx: `LLM_API_KEY`, `LLM_SMALL`, `LLM_BIG` from `backend/.env`; JSON via `responseJsonSchema`, one retry on timeout/5xx/429, Gemini 3 `thoughtSignature`s carried through tool turns. With `LLM_MOCK=1` it reads `fixtures/llm/<prompt>.json` instead (tests always force mocks; a fixture can be one reply, a rotating list, or `{"cases": [{"if_contains"...}]}` matched on prompt text). Backend uses `uv` with Python 3.12 (`backend/pyproject.toml`). On this machine `uv` isn't on PATH, so call it as `python -m uv`. Run from `backend/`:
+Built so far (days 1–3): `config, db, qloo, scoring, models, presets, prompts, llm, orchestrator, comparables, segments, personas, validator, panel, events, pipeline` and `scripts/record_fixtures.py`, with tests. `pipeline.run(db, qloo, run_id)` runs a whole grounded run (segments → personas → round 1 → moderator → round 2 → `done` event); the report step and HTTP endpoints come on day 4. `llm.py` calls Gemini (free tier) over REST with httpx: `LLM_API_KEY`, `LLM_SMALL`, `LLM_BIG` from `backend/.env`; JSON via `responseJsonSchema`, one retry on timeout/5xx/429, Gemini 3 `thoughtSignature`s carried through tool turns. With `LLM_MOCK=1` it reads `fixtures/llm/<prompt>.json` instead (tests always force mocks; a fixture can be one reply, a rotating list, or `{"cases": [{"if_contains"...}]}` matched on prompt text). Backend uses `uv` with Python 3.12 (`backend/pyproject.toml`). On this machine `uv` isn't on PATH, so call it as `python -m uv`. Run from `backend/`:
 - Install: `python -m uv sync`
 - Tests: `python -m uv run pytest`. Single test: `python -m uv run pytest tests/test_scoring.py::test_price`. Tests use mocks and in-memory SQLite, with no keys needed.
 - Lint: `python -m uv run ruff check .`
@@ -23,7 +23,7 @@ Built so far (days 1–2): `config, db, qloo, scoring, models, presets, prompts,
 
 Planned, not built yet: dev server `uvicorn app.main:app`; scripts `python -m scripts.record_fixtures`, `scripts.seed_examples`, `scripts.backtest --brands "..."`.
 
-Qloo API facts from the day-1 probes (also in Technical Design): insights entities carry the real type in `subtype` (`type` is just `urn:entity`); a search miss returns the nearest *wrong* brand, so check names; bad parameter values return a 400; some obscure brands have no data (left out of results, so `lift()` gives 0). Don't use `:memory:` SQLite: concurrent writes on its single shared connection lose data.
+Qloo API facts from the day-1 probes (also in Technical Design): insights entities carry the real type in `subtype` (`type` is just `urn:entity`); a search miss returns the nearest *wrong* brand, so check names; bad parameter values return a 400; some obscure brands have no data (left out of results, so `lift()` gives 0); `take` must be ≤ 50, so `insights(result_ids=...)` splits longer id lists into chunks. `Qloo._get` makes identical parallel requests share one call, and `Db.cache_put` tolerates a parallel insert of the same key. Don't use `:memory:` SQLite: concurrent writes on its single shared connection lose data.
 - Env vars are listed in Technical Design §11 (`.env.example`).
 
 Frontend: Next.js App Router + Tailwind + Recharts in `frontend/`, API base from `NEXT_PUBLIC_API_URL`.

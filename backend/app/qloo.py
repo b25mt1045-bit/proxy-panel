@@ -15,6 +15,7 @@ from app.db import Db
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "qloo"
 SPACING_S = 0.22
+MAX_TAKE = 50  # Qloo rejects take > 50 with a 400
 
 # Per-run counters, set by the pipeline: {"qloo_calls": int, "qloo_cache_hits": int, "llm_cost_usd": float, "warnings": list}
 run_ctx: ContextVar[dict | None] = ContextVar("run_ctx", default=None)
@@ -57,6 +58,7 @@ class Qloo:
         self.client = httpx.AsyncClient(base_url=base_url, headers={"X-Api-Key": api_key}, timeout=10)
         self._lock = asyncio.Lock()
         self._last = -SPACING_S
+        self._inflight: dict[str, asyncio.Future] = {}
 
     async def search(self, query: str, types: str = "urn:entity:brand", take: int = 1) -> list[Entity]:
         data = await self._get("/search", {"query": query, "types": types, "take": take})
@@ -78,6 +80,11 @@ class Qloo:
                        result_ids: list[str] | None = None) -> list[Entity]:
         """Entities of `filter_type` ranked for the seed entities. With `result_ids`, scores exactly those
         entities instead of returning the top `take` (an id Qloo has no data for is left out)."""
+        if result_ids and len(result_ids) > MAX_TAKE:
+            ids = sorted(result_ids)
+            parts = await asyncio.gather(*[self.insights(filter_type, entity_ids, take, demographics, location,
+                                                         ids[i:i + MAX_TAKE]) for i in range(0, len(ids), MAX_TAKE)])
+            return [e.model_copy(update={"rank": r}) for r, e in enumerate(e for p in parts for e in p)]
         params = {"filter.type": filter_type, "signal.interests.entities": ",".join(entity_ids), "take": take}
         for k, v in (demographics or {}).items():
             params[f"signal.demographics.{k}"] = v
@@ -95,6 +102,16 @@ class Qloo:
 
     async def _get(self, path: str, params: dict) -> dict:
         key = cache_key(path, params)
+        if (pending := self._inflight.get(key)) is not None:  # identical parallel requests share one call
+            _bump("qloo_cache_hits")
+            return await pending
+        self._inflight[key] = task = asyncio.ensure_future(self._get_once(key, path, params))
+        try:
+            return await task
+        finally:
+            self._inflight.pop(key, None)
+
+    async def _get_once(self, key: str, path: str, params: dict) -> dict:
         if (cached := await self.db.cache_get(key)) is not None:
             _bump("qloo_cache_hits")
             return cached

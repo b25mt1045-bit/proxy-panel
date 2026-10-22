@@ -107,3 +107,37 @@ async def test_mock_reads_fixture_or_fails_loudly(db, tmp_path):
     assert (await q.search("Olipop"))[0].name == "Olipop"
     with pytest.raises(QlooError, match="no fixture for /search"):
         await q.search("Missing")
+
+
+@respx.mock
+async def test_result_ids_over_50_are_chunked(db, monkeypatch):
+    monkeypatch.setattr("app.qloo.SPACING_S", 0)
+
+    def reply(request):
+        ids = request.url.params["filter.results.entities"].split(",")
+        assert len(ids) <= 50 and request.url.params["take"] == str(len(ids))
+        return httpx.Response(200, json={"results": {"entities": [
+            {"entity_id": i, "name": i, "query": {"affinity": 0.5}} for i in ids]}})
+
+    route = respx.get(f"{BASE}/v2/insights").mock(side_effect=reply)
+    ids = [f"E{n:03}" for n in range(82)]
+    out = await client(db).insights("urn:entity:brand", ["S1"], result_ids=ids)
+    assert route.call_count == 2 and sorted(e.qloo_id for e in out) == ids
+
+
+async def test_parallel_cache_puts_of_one_key_do_not_fail(db):
+    import asyncio
+
+    await asyncio.gather(*[db.cache_put("k", "/search", {}, {"n": i}) for i in range(5)])
+    assert (await db.cache_get("k"))["n"] in range(5)
+
+
+@respx.mock
+async def test_identical_parallel_requests_share_one_call(db, ctx):
+    import asyncio
+
+    route = respx.get(f"{BASE}/search").mock(return_value=httpx.Response(200, json=HIT))
+    q = client(db)
+    out = await asyncio.gather(*[q.search("Olipop") for _ in range(4)])
+    assert route.call_count == 1 and all(o[0].qloo_id == "E1" for o in out)
+    assert ctx == {"qloo_calls": 1, "qloo_cache_hits": 3}

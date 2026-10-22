@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import JSON, Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -57,7 +58,7 @@ class Persona(Base):
     segment: Mapped[int] = mapped_column(Integer)
     name: Mapped[str] = mapped_column(Text)
     bio: Mapped[str] = mapped_column(Text)
-    fingerprint: Mapped[list] = mapped_column(Json)
+    fingerprint: Mapped[dict] = mapped_column(Json)  # {"brand": [names], "artist": [...], ...}
     comparable_lifts: Mapped[dict | None] = mapped_column(Json)
     stance_score: Mapped[float | None] = mapped_column(Float)
     stance_scaled: Mapped[float | None] = mapped_column(Float)
@@ -119,4 +120,7 @@ class Db:
     async def cache_put(self, key: str, path: str, params: dict, response: dict):
         async with self.session() as s:
             await s.merge(QlooCache(key=key, path=path, params=params, response=response, fetched_at=utcnow()))
-            await s.commit()
+            try:
+                await s.commit()
+            except IntegrityError:  # a parallel call cached the same key first; same request, same answer
+                await s.rollback()

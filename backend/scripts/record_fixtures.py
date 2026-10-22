@@ -13,6 +13,7 @@ from pathlib import Path
 
 from sqlalchemy import select
 
+from app import personas
 from app.comparables import propose
 from app.config import settings
 from app.db import Db, QlooCache
@@ -26,16 +27,20 @@ async def record_brief(q: Qloo, brief: Brief):
     comps, dropped = await propose(q, brief)
     print(f"\n{brief.description[:50]}…\n  comparables: {[c.name for c in comps]}  dropped: {dropped}")
     await baseline(q, "urn:entity:brand", [c.qloo_id for c in comps])
+    sigs = []
     for i, seg in enumerate(brief.segments):
         try:
             sig = await build_segment_signals(q, seg, i)
         except SegmentFailed as e:
             print(f"  FAILED: {e}")
             continue
+        sigs.append(sig)
         media = await segment_media(q, sig)
         for t in MEDIA_TYPES:
             await baseline(q, t, [e.qloo_id for e in media[t]])
         print(f"  segment '{sig.label}': seeds {[s.name for s in sig.seeds]}  dropped: {sig.dropped}")
+    built = await personas.build(q, q.db, sigs, comps)
+    print(f"  personas: {[(p.stance_label, round(p.stance_score, 3)) for p in built]}")
 
 
 async def main():
@@ -60,6 +65,7 @@ async def main():
     FIXTURES.mkdir(parents=True, exist_ok=True)
     async with db.session() as s:
         rows = (await s.scalars(select(QlooCache))).all()
+    rows = [r for r in rows if not r.key.startswith("tier:")]  # price tiers are LLM output, not Qloo data
     for r in rows:
         (FIXTURES / f"{r.key}.json").write_text(json.dumps(r.response, ensure_ascii=False), encoding="utf-8")
     print(f"\nWrote {len(rows)} fixtures to {FIXTURES}")

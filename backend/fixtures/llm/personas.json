@@ -1,0 +1,8 @@
+{"personas": [
+  {"id": "P1", "name": "Maya", "bio": "a 22-year-old climbing-gym regular who budgets for good gear and better coffee"},
+  {"id": "P2", "name": "Jordan", "bio": "a student runner who tracks every rep and every dollar"},
+  {"id": "P3", "name": "Priya", "bio": "a product manager who swaps wine for wellness drinks on weeknights"},
+  {"id": "P4", "name": "Leo", "bio": "a remote engineer who lives on cold brew and podcasts between standups"},
+  {"id": "P5", "name": "Sam", "bio": "a parent of two who reads every label at the store"},
+  {"id": "P6", "name": "Ava", "bio": "a yoga teacher who tries every new wellness brand first"}
+]}

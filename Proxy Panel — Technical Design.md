@@ -301,20 +301,24 @@ async def persona_brands(persona_seeds, age, gender) -> list[Entity]:   # once p
 The persona's top 50 brands do two jobs: its fingerprint (top 5 by lift) and its comparable scores (§6).
 
 ### Call count per run (3 segments, before caching)
+Measured on the beverage example in mock mode (`tests/test_pipeline.py`):
+
 | Call | Count |
 |---|---|
-| `search` comparables | 6 |
-| `search` seeds (free text segments only) | ≤ 8 |
-| `insights` media per segment | 3 × 3 = 9 |
-| `insights` brands per persona | 6 |
+| `search` seeds (4 per segment) | 12 |
+| `search` baseline seeds (cached forever after the first run) | 5 |
+| `insights` media per segment (artist, tv_show, podcast) | 3 × 3 = 9 |
+| `insights` top 15 brands per persona | 6 |
 | `insights` comparables per persona (`result_ids`) | 6 |
-| baseline (`result_ids`): brands 1 + media types 3 | 4 |
-| **Total** | **≈ 31–39** |
+| baseline (`result_ids`): brands, split into chunks of ≤ 50 ids (Qloo's `take` limit), plus 3 media types | 2 + 3 = 5 |
+| **Total** | **43** (36 for 2 segments); the comparables' own searches happen earlier, in `POST /runs` |
+
+Identical requests running in parallel share one call (`Qloo._get`), so the 4 parallel baseline lookups resolve the baseline seeds only once.
 
 `demo(sig)` returns `{}` when `DEMOGRAPHICS_ENABLED=false`.
 
 ### Tests
-A preset resolves without an LLM call. A free-text segment with 1 resolved seed calls the orchestrator. The mock call count for a 3-segment brief is at most 39. When demographics are disabled, no `signal.demographics.*` params are sent.
+A preset resolves without an LLM call. A free-text segment with 1 resolved seed calls the orchestrator. The mock call count for a 3-segment brief is at most 43. When demographics are disabled, no `signal.demographics.*` params are sent.
 
 ---
 
@@ -528,9 +532,11 @@ def check_static(text: str, persona, comparable_prices) -> list[str]:
     bad = [c for c in cited if c not in persona.receipt_labels]
     if bad: errs.append(f"foreign_receipt: {', '.join(bad)} are not your IDs")
     for amt in DOLLARS.findall(text):
+        if float(amt) in own_prices: continue      # built: quoting the product's or a comparable's real price is allowed
         t = concept_tier(float(amt), comparable_prices)
         if not persona.price_lo <= t <= persona.price_hi:
             errs.append(f"price_out_of_band: ${amt} is tier {t}, your band is {persona.price_lo:.0f}-{persona.price_hi:.0f}")
+    if PRICE_WORDS.search(text): errs.append("price_in_words: …")    # built: "three dollars" would dodge the $ check
     words = len(text.split())
     if not 40 <= words <= 120: errs.append(f"length: {words} words")   # loose bounds around the 60–100 asked for
     return errs
