@@ -4,16 +4,27 @@
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint.js\" record" }
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint.js\" record"
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint.js\" check", "timeout": 120, "statusMessage": "Linting edited files..." }
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint.js\" check",
+            "timeout": 120,
+            "statusMessage": "Linting edited files..."
+          }
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "ecc@ecc": true
   }
 }

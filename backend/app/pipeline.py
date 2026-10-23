@@ -5,7 +5,7 @@ import logging
 
 from sqlalchemy import select, update
 
-from app import panel, personas
+from app import panel, personas, report
 from app.db import Comparable as ComparableRow
 from app.db import Db, Persona, Receipt, Run, Statement
 from app.events import emit
@@ -16,7 +16,7 @@ from app.segments import SegmentFailed, build_segment_signals
 from app.validator import cited, codes
 
 log = logging.getLogger(__name__)
-STEPS = 5  # Day 4 adds "Writing report…"
+STEPS = 6
 
 
 async def run(db: Db, q: Qloo, run_id: str):
@@ -117,10 +117,10 @@ async def _run(db: Db, q: Qloo, run_id: str, ctx: dict):
     await emit(db, run_id, "moderator", {"persona_ids": [a.id, b.id], "focus": mod.focus, "questions": mod.questions})
 
     await progress("round2", "Round 2…", 5)
-    r2 = await panel.run_round("panelist_r2", 2, [a, b], panel.round2_users(a, b, mod, r1_text), pctx, store)
+    await panel.run_round("panelist_r2", 2, [a, b], panel.round2_users(a, b, mod, r1_text), pctx, store)
 
-    finals = r1 + r2
-    rate = sum(not f.errors for f in finals) / len(finals)
+    await progress("report", "Writing report…", 6)
+    rep = await report.compute(db, run_id)
     for w in ctx["warnings"][sent_warnings:]:
         await emit(db, run_id, "warning", {"message": w})
-    await emit(db, run_id, "done", {"report_url": f"/runs/{run_id}/report", "grounding_rate": round(rate, 2)})
+    await emit(db, run_id, "done", {"report_url": f"/runs/{run_id}/report", "grounding_rate": rep["grounding"]["rate"]})

@@ -77,6 +77,22 @@ MODERATOR_USER = (
     'Reply as JSON: {{"focus": str, "questions": [str]}}  (focus is a one-line label such as "price vs. habit")'
 )
 
+OBJECTIONS_SYSTEM = f"You summarise focus-group feedback. Reply with JSON only. {DATA_RULE}"
+OBJECTIONS_USER = (
+    "Below are focus-group statements from people who were skeptical or conditional about {brief}. Group them "
+    "into 3-5 distinct objections. Each objection: one short sentence, plus the ids of the statements that raised "
+    "it. Use only these statements.\n{statements}\n"
+    'Reply as JSON: {{"objections": [{{"text": str, "statement_ids": [int]}}]}}'
+)
+
+INTERVIEW_SYSTEM = f"You design qualitative customer interviews. Reply with JSON only. {DATA_RULE}"
+INTERVIEW_USER = (
+    "Write a recruiting brief and 5 interview questions to test these objections with real people from the "
+    "segment {segment}.\nTaste markers to screen for: {markers}.\nObjections: {objections}\n"
+    "Questions must be open-ended, non-leading, and each tied to one objection.\n"
+    'Reply as JSON: {{"recruit": str, "markers": [str], "questions": [str, str, str, str, str]}}'
+)
+
 SENTIMENT_SYSTEM = "You classify focus-group statements. Reply with JSON only."
 SENTIMENT_USER = (
     "For each statement, classify the speaker's attitude toward the product: positive, mixed or negative.\n"

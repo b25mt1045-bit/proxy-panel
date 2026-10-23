@@ -8,7 +8,7 @@ from app.models import Brief
 from app.presets import EXAMPLE_BRIEFS
 from app.qloo import Qloo
 
-STEPS = ["segments", "personas", "round1", "moderator", "round2"]
+STEPS = ["segments", "personas", "round1", "moderator", "round2", "report"]
 
 
 async def start(db, raw) -> tuple[Qloo, str]:
@@ -43,6 +43,13 @@ async def test_example_runs_end_to_end_in_mock_mode(db, raw):
     assert all(s.passed for s in stmts)  # the mock panel cites real labels
     # 3 segments, cold cache: 12 seed + 5 baseline-seed searches, 9 media, 6+6 persona, 2+3 baseline = 43
     assert 0 < run.qloo_calls <= 43
+    rep = run.report
+    assert rep["verdict"]["segment_label"] in {sg["label"] for sg in rep["segments"]}
+    assert rep["grounding"]["total"] == 8 and rep["grounding"]["qloo_calls"] == run.qloo_calls
+    assert len(rep["interview"]["questions"]) == 5 and len(rep["price_bands"]["personas"]) == 6
+    stmt_ids = {s.id for s in stmts}
+    assert all(set(o["statement_ids"]) <= stmt_ids for o in rep["objections"])
+    assert not any(o["text"].startswith("An objection no") for o in rep["objections"])  # its only id was fake
 
 
 async def test_failure_marks_run_failed(db, monkeypatch):

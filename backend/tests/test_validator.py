@@ -6,7 +6,7 @@ from app import llm, panel
 from app.models import Brief
 from app.personas import BuiltPersona, ReceiptIn
 from app.presets import EXAMPLE_BRIEFS
-from app.validator import check_static, stance_error
+from app.validator import check_static, cited, stance_error
 
 LABELS = {"R1", "R2", "C1"}
 PRICES = [2.99, 2.49, 3.49]
@@ -17,10 +17,16 @@ def check(text, band=(1.0, 2.0), own=frozenset({3.29})):
     return [e.split(":")[0] for e in check_static(text, LABELS, band, PRICES, set(own))]
 
 
+def test_cited_splits_groups_and_dedupes():
+    assert cited("A [R1, R4,R3] then [R1] and [C2].") == ["R1", "R4", "R3", "C2"]
+
+
 def test_rules():
     assert check(f"I like it [R1] and [C1]. {FILLER}") == []
     assert check(f"No citation here. {FILLER}") == ["no_receipt"]
     assert check(f"Mine [R1] but not [R9]. {FILLER}") == ["foreign_receipt"]
+    assert check(f"Grouped [R1, R2,C1] works. {FILLER}") == []
+    assert check(f"Grouped [R1, R9] still checked. {FILLER}") == ["foreign_receipt"]
     assert check(f"I'd pay $12 for it [R1]. {FILLER}") == ["price_out_of_band"]  # $12 is tier 4, band 1-2
     assert check(f"At $3.29 [R1] it's pricey. {FILLER}") == []  # the product's own price is allowed
     assert check(f"I'd pay $2 [R1]. {FILLER}") == []  # tier 1, inside the band

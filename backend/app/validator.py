@@ -10,7 +10,7 @@ from app import llm
 from app.prompts import SENTIMENT_SYSTEM, SENTIMENT_USER
 from app.scoring import concept_tier
 
-CITE = re.compile(r"\[([RC]\d+)\]")
+CITE = re.compile(r"\[([RC]\d+(?:\s*,\s*[RC]\d+)*)\]")  # Gemini often groups them: [R1, R4]
 DOLLARS = re.compile(r"\$\s?(\d+(?:\.\d{1,2})?)")
 # "three dollars", "twenty-nine bucks": hides an amount from the DOLLARS check, so it must be written as digits.
 _NUM = r"(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|hundred)"
@@ -19,7 +19,7 @@ MIN_WORDS, MAX_WORDS = 40, 120  # loose bounds around the 60-100 asked for
 
 
 def cited(text: str) -> list[str]:
-    return list(dict.fromkeys(CITE.findall(text)))
+    return list(dict.fromkeys(i.strip() for g in CITE.findall(text) for i in g.split(",")))
 
 
 def check_static(text: str, labels: set[str], band: tuple[float, float], comparable_prices: list[float],
