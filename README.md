@@ -9,7 +9,13 @@ A pre-launch focus group for consumer products, built on real taste data. Descri
 - [Technical Design](<Proxy Panel — Technical Design.md>): how each feature is built, including data shapes, prompts, algorithms, tests and deployment.
 
 ## Stack (planned)
-Python 3.12 + FastAPI backend, Next.js + Tailwind frontend, Postgres (SQLite locally). Setup instructions will be added with the code.
+Python 3.12 + FastAPI backend, Next.js + Tailwind frontend, Postgres (SQLite locally). 
+
+## Setup
+
+Backend (from `backend/`, needs [uv](https://docs.astral.sh/uv/)): `uv sync`, copy `.env.example` to `.env`, then `uv run uvicorn app.main:app --reload` (port 8000). Mock mode (`QLOO_MOCK=1 LLM_MOCK=1`) needs no keys and runs the three example briefs. Tests: `uv run pytest`.
+
+Frontend (from `frontend/`): `npm install`, then `npm run dev` (port 3000). It calls the API at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`).
 
 ## License
 [MIT](LICENSE)

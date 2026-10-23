@@ -136,3 +136,9 @@ async def test_examples_lists_done_example_runs(api, db):
         await s.commit()
     out = (await api.get("/examples")).json()
     assert [e["run_id"] for e in out["examples"]] == ["ex"] and out["examples"][0]["grounding_rate"] == 0.9
+
+
+async def test_presets(api):
+    r = (await api.get("/presets")).json()
+    assert {"id": "genz_urban_fitness", "label": "Gen Z urban fitness"} in r["presets"]
+    assert r["example_briefs"] == EXAMPLE_BRIEFS

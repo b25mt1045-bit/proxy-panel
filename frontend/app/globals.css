@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+/* Achromatic ledger (taste-skill app sheet, seed 1829431772): ink chrome, one chart hue on the main data. */
+:root {
+  --ground: #f2f4f7; /* blue-grey ledger ground, the screen's face */
+  --surface: #ffffff;
+  --raised: #eeeeee;
+  --border: #e6e6e6;
+  --rule: #f0f0f0;
+  --control: #d4d4d4;
+  --text: #0a0a0a;
+  --muted: #5f6368;
+  --accent: #141414;
+  --hue: #1d5fbf; /* the one chart hue: the winning segment, the concept price line */
+  --hue-tint: #e8eff9;
+  --positive: #2e7d32;
+  --negative: #c4242a;
+  --pill-positive-bg: #dcfae5; --pill-positive-ink: #04250e;
+  --pill-negative-bg: #ffedea; --pill-negative-ink: #831c1e;
+  --pill-warning-bg: #fffbeb; --pill-warning-ink: #92400e;
+  --pill-neutral-bg: #eeeeee; --pill-neutral-ink: #3d3d3d;
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-border: var(--border);
+  --color-rule: var(--rule);
+  --color-control: var(--control);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-hue: var(--hue);
+  --color-hue-tint: var(--hue-tint);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-pos-bg: var(--pill-positive-bg);
+  --color-pos-ink: var(--pill-positive-ink);
+  --color-neg-bg: var(--pill-negative-bg);
+  --color-neg-ink: var(--pill-negative-ink);
+  --color-warn-bg: var(--pill-warning-bg);
+  --color-warn-ink: var(--pill-warning-ink);
+  --font-sans: var(--font-geist-sans), Inter, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+body {
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font-geist-sans), Inter, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.num { font-variant-numeric: tabular-nums; }
+
+:focus-visible { outline: 2px solid var(--hue); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

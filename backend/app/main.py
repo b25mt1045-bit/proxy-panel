@@ -22,6 +22,7 @@ from app.db import Comparable, Db, QlooCache, Run
 from app.guards import ApiError, check, client_ip
 from app.llm import LLMError
 from app.models import Brief
+from app.presets import EXAMPLE_BRIEFS, PRESETS
 from app.qloo import Qloo, QlooError, run_ctx
 
 _tasks: set[asyncio.Task] = set()  # keeps pipeline tasks alive after the request returns
@@ -73,11 +74,15 @@ async def _invalid(req: Request, e: RequestValidationError):
 
 @app.exception_handler(QlooError)
 async def _qloo_down(_: Request, e: QlooError):
+    if settings.QLOO_MOCK:
+        return _err(502, "qloo_unavailable", "Mock mode only covers the example briefs; set QLOO_MOCK=0 for live Qloo.")
     return _err(502, "qloo_unavailable", "Qloo is unavailable; try again or use the examples.")
 
 
 @app.exception_handler(LLMError)
 async def _llm_down(_: Request, e: LLMError):
+    if settings.LLM_MOCK:
+        return _err(502, "llm_unavailable", "Mock mode only covers the example briefs; set LLM_MOCK=0 for live Gemini.")
     return _err(502, "llm_unavailable", "The language model is unavailable; try again shortly.")
 
 
@@ -239,6 +244,12 @@ async def get_report(run_id: str, req: Request):
     if run.status != "done":
         raise ApiError(409, "bad_status", f"Run is {run.status}; the report is ready once it is done.")
     return run.report or await report.compute(db, run_id)
+
+
+@app.get("/presets")
+async def presets():
+    """Segment presets and the example briefs, so the brief form has one source of truth."""
+    return {"presets": [{"id": k, "label": v["label"]} for k, v in PRESETS.items()], "example_briefs": EXAMPLE_BRIEFS}
 
 
 @app.get("/examples")
