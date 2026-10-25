@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+/* Debate night: an election-night broadcast package. Electric blue ground, white plates, one signal yellow, one live red.
+   Stance colours always travel with a label. */
+@theme {
+  --color-blue: #1a33d6; /* hero ground, white text 8.5:1 */
+  --color-blue-deep: #0f22a3; /* bands */
+  --color-navy: #070f45; /* screens and the form room */
+  --color-panel: #0c1757; /* form surface */
+  --color-line: #26317a; /* hairlines on navy */
+  --color-text: #ffffff;
+  --color-sub: #c3cbff; /* 11:1 on navy, 6.4:1 on blue */
+  --color-faint: #8f9bea; /* navy only: 7:1 */
+  --color-plate: #ffffff;
+  --color-ink: #070f45; /* text on plates and signal */
+  --color-signal: #ffd60a;
+  --color-live: #ff3b30;
+  --color-enthusiast: #2ee59d;
+  --color-conditional: #ffb020;
+  --color-skeptic: #ff6b6b;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-cond: var(--font-barlow), var(--font-archivo), sans-serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* The bar fills while a request runs; it stops short so it never claims to be done. */
+  --animate-fill: fill 18s var(--ease-out-expo) forwards;
+  @keyframes fill {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(0.92);
+    }
+  }
+}
+
+/* Broadcast display: condensed italic caps. */
+@utility display {
+  font-family: var(--font-cond);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  line-height: 0.9;
+}
+
+/* Lower-third labels: condensed caps, upright. */
+@utility tag {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Angled broadcast edge on the right side of a plate or button. */
+@utility cut {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 0.6em) 100%, 0 100%);
+}
+
+/* A value swapped in place wipes in from the left, like a graphics operator punching it up. */
+@keyframes wipe-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes rise-in {
+  from {
+    transform: translateY(0.35em) skewX(-6deg);
+    opacity: 0;
+  }
+}
+@keyframes crawl {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scrollbar-color: var(--color-signal) var(--color-navy);
+    @media (prefers-reduced-motion: no-preference) {
+      scroll-behavior: smooth;
+    }
+  }
+  body {
+    background: var(--color-navy);
+    color: var(--color-text);
+    font-feature-settings: "tnum" 1;
+    caret-color: var(--color-blue);
+  }
+  ::selection {
+    background: var(--color-signal);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-signal);
+    outline-offset: 2px;
+  }
+  a {
+    text-underline-offset: 4px;
+  }
+}
