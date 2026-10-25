@@ -1,27 +1,23 @@
 @import "tailwindcss";
 
-/* Debate night: an election-night broadcast package. Electric blue ground, white plates, one signal yellow, one live red.
+/* Graphite: a quiet dark room, warm off-white type, one pale-gold accent kept for the six panelists and the main action.
    Stance colours always travel with a label. */
 @theme {
-  --color-blue: #1a33d6; /* hero ground, white text 8.5:1 */
-  --color-blue-deep: #0f22a3; /* bands */
-  --color-navy: #070f45; /* screens and the form room */
-  --color-panel: #0c1757; /* form surface */
-  --color-line: #26317a; /* hairlines on navy */
-  --color-text: #ffffff;
-  --color-sub: #c3cbff; /* 11:1 on navy, 6.4:1 on blue */
-  --color-faint: #8f9bea; /* navy only: 7:1 */
-  --color-plate: #ffffff;
-  --color-ink: #070f45; /* text on plates and signal */
-  --color-signal: #ffd60a;
-  --color-live: #ff3b30;
-  --color-enthusiast: #2ee59d;
-  --color-conditional: #ffb020;
-  --color-skeptic: #ff6b6b;
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --font-cond: var(--font-barlow), var(--font-archivo), sans-serif;
+  --color-bg: #0e0f11;
+  --color-raise: #15171a; /* fields, raised surfaces */
+  --color-line: #26282d; /* hairlines */
+  --color-line-2: #34373d; /* field borders */
+  --color-text: #ece8e1; /* 15.6:1 on bg */
+  --color-sub: #a29e95; /* 7:1 */
+  --color-faint: #7f7b74; /* 4.6:1 */
+  --color-gold: #d9c08c; /* accent: the panel, the primary action */
+  --color-ink: #0e0f11; /* text on gold / off-white */
+  --color-enthusiast: #8fcfa6;
+  --color-conditional: #e3bd78;
+  --color-skeptic: #e8928a;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-bodoni), ui-serif, Georgia, serif;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  /* The bar fills while a request runs; it stops short so it never claims to be done. */
   --animate-fill: fill 18s var(--ease-out-expo) forwards;
   @keyframes fill {
     from {
@@ -33,78 +29,100 @@
   }
 }
 
-/* Broadcast display: condensed italic caps. */
-@utility display {
-  font-family: var(--font-cond);
+/* The serif voice: Bodoni italic, kept to one or two words at a time. */
+@utility accent {
+  font-family: var(--font-serif);
   font-style: italic;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: -0.005em;
-  line-height: 0.9;
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
 
-/* Lower-third labels: condensed caps, upright. */
-@utility tag {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-/* Angled broadcast edge on the right side of a plate or button. */
-@utility cut {
-  clip-path: polygon(0 0, 100% 0, calc(100% - 0.6em) 100%, 0 100%);
-}
-
-/* A value swapped in place wipes in from the left, like a graphics operator punching it up. */
-@keyframes wipe-in {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
+@keyframes spin-slow {
   to {
-    clip-path: inset(0 0 0 0);
+    transform: rotate(360deg);
   }
 }
-@keyframes rise-in {
-  from {
-    transform: translateY(0.35em) skewX(-6deg);
-    opacity: 0;
-  }
-}
-@keyframes crawl {
+@keyframes marquee {
   to {
     transform: translateX(-50%);
   }
 }
-@keyframes blink {
-  50% {
-    opacity: 0.25;
+@keyframes cue {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  45% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  55% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+
+/* Intro: shown only when the inline head script decides it should play (first visit this session, motion allowed).
+   If scripts fail, the failsafe hides it after 4s so the page is never blocked. */
+.intro {
+  display: none;
+}
+html[data-intro="play"] .intro {
+  display: flex;
+  animation: intro-failsafe 0.4s ease 4s forwards;
+}
+html[data-intro="play"] .site-header {
+  opacity: 0;
+  animation: header-failsafe 0.4s ease 4s forwards;
+}
+@keyframes intro-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes header-failsafe {
+  to {
+    opacity: 1;
   }
 }
 
 @layer base {
   html {
     color-scheme: dark;
-    scrollbar-color: var(--color-signal) var(--color-navy);
-    @media (prefers-reduced-motion: no-preference) {
-      scroll-behavior: smooth;
-    }
+    scrollbar-color: var(--color-line-2) var(--color-bg);
+  }
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
   }
   body {
-    background: var(--color-navy);
+    overflow-x: clip;
+    background: var(--color-bg);
     color: var(--color-text);
-    font-feature-settings: "tnum" 1;
-    caret-color: var(--color-blue);
+    caret-color: var(--color-gold);
+    font-feature-settings: "ss01" 1;
   }
   ::selection {
-    background: var(--color-signal);
+    background: var(--color-gold);
     color: var(--color-ink);
   }
   :focus-visible {
-    outline: 3px solid var(--color-signal);
-    outline-offset: 2px;
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
   }
   a {
     text-underline-offset: 4px;
+  }
+  select option {
+    background: var(--color-raise);
+    color: var(--color-text);
   }
 }

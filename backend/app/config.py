@@ -19,7 +19,6 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "sqlite+aiosqlite:///./proxy.db"
     DAILY_LLM_CAP_USD: float = 5
-    RUNS_PER_IP_PER_DAY: int = 5
     TRUST_PROXY: bool = False
     CORS_ORIGINS: str = "http://localhost:3000"
 

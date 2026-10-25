@@ -129,8 +129,9 @@ function parseServerError(message: string): [string, string] | null {
 
 
 const inputCls =
-  "h-12 w-full bg-plate px-3.5 text-[15px] text-ink placeholder:text-[#5f6488] transition-shadow duration-150 " +
-  "focus:outline-none focus:ring-4 focus:ring-signal aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-skeptic";
+  "h-12 w-full rounded-xl border border-line-2 bg-raise px-4 text-[15px] text-text placeholder:text-faint " +
+  "transition-[border-color,box-shadow] duration-300 hover:border-[#454850] focus:border-gold focus:outline-none " +
+  "focus:ring-4 focus:ring-gold/10 aria-[invalid=true]:border-skeptic";
 
 export function BriefForm() {
   const router = useRouter();
@@ -198,23 +199,18 @@ export function BriefForm() {
   const usedPresets = new Set(form.segments.map((s) => (s.mode === "preset" ? s.preset_id : "")).filter(Boolean));
 
   return (
-    <section id="brief" aria-labelledby="brief-head" className="scroll-mt-4">
-      <div className="mx-auto grid max-w-7xl gap-x-12 gap-y-10 px-4 pb-24 pt-20 sm:px-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
+    <section id="brief" aria-labelledby="brief-head">
+      <div className="mx-auto grid max-w-6xl gap-x-16 gap-y-14 px-5 pb-32 pt-32 sm:px-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
         <div className="lg:col-span-2">
-          <h2 id="brief-head" className="display text-[clamp(2.5rem,5vw,4rem)] text-white">
-            Brief the panel
+          <h2 id="brief-head" className="text-[clamp(2.5rem,5.5vw,4.5rem)] font-light leading-[1] tracking-[-0.035em] text-text">
+            Brief the <span className="accent text-gold">panel.</span>
           </h2>
-          <p id="brief-intro" className="mt-3 max-w-[60ch] text-[15px] leading-relaxed text-sub">
-            Four cues. The panel needs nothing else, and nothing runs until you confirm the comparable brands on the next screen.
+          <p id="brief-intro" className="mt-6 max-w-[52ch] text-[17px] leading-relaxed text-sub">
+            Four short answers. Nothing runs until you confirm the comparable brands on the next screen.
           </p>
         </div>
 
-        <form
-          onSubmit={submit}
-          noValidate
-          aria-describedby="brief-intro"
-          className="border-t-4 border-signal bg-panel shadow-[0_30px_70px_-30px_rgba(0,0,0,0.9)]"
-        >
+        <form onSubmit={submit} noValidate aria-describedby="brief-intro" className="border-t border-line">
           <Cue n={1} title="Product" hint="What it is and what makes it different." htmlFor={fieldId("description")}>
             <Field path="description" errors={errors}>
               <textarea
@@ -225,11 +221,11 @@ export function BriefForm() {
                 placeholder="A prebiotic sparkling soda with 5g sugar and adaptogens, sold in 12oz cans"
                 aria-invalid={!!errors.description}
                 aria-describedby={`${fieldId("description")}-count${errors.description ? ` ${fieldId("description")}-error` : ""}`}
-                className={`${inputCls} h-auto resize-y py-2.5 leading-relaxed`}
+                className={`${inputCls} h-auto resize-y py-3 leading-relaxed`}
               />
               <p
                 id={`${fieldId("description")}-count`}
-                className={`mt-1.5 text-right text-xs ${form.description.length > DESC_MAX ? "font-semibold text-skeptic" : "text-faint"}`}
+                className={`mt-2 text-right text-xs tabular-nums ${form.description.length > DESC_MAX ? "font-semibold text-skeptic" : "text-faint"}`}
               >
                 {form.description.length.toLocaleString()} / 1,000
               </p>
@@ -237,9 +233,9 @@ export function BriefForm() {
           </Cue>
 
           <Cue n={2} title="Category and price" hint="Category sets which brands it's compared with. Price is USD, per unit or month.">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Field path="category" errors={errors}>
-                <label htmlFor={fieldId("category")} className="mb-1.5 block text-xs font-medium text-sub">
+                <label htmlFor={fieldId("category")} className="mb-2 block text-xs text-sub">
                   Category
                 </label>
                 <SelectBox
@@ -259,7 +255,7 @@ export function BriefForm() {
                 </SelectBox>
               </Field>
               <Field path="price" errors={errors}>
-                <label htmlFor={fieldId("price")} className="mb-1.5 block text-xs font-medium text-sub">
+                <label htmlFor={fieldId("price")} className="mb-2 block text-xs text-sub">
                   Price
                 </label>
                 <PriceInput
@@ -285,11 +281,11 @@ export function BriefForm() {
               )
             }
           >
-            <div className="grid gap-4">
+            <div className="grid gap-5">
               {form.variants.map((v, i) => (
-                <div key={v.key} className="grid grid-cols-[2rem_minmax(0,1fr)] gap-x-3">
+                <div key={v.key} className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-x-3">
                   <Badge>{v.key}</Badge>
-                  <div className="grid gap-2.5">
+                  <div className="grid gap-3">
                     <div className="flex gap-2">
                       <Field path={`variants.${i}.name`} errors={errors} className="flex-1">
                         <label htmlFor={fieldId(`variants.${i}.name`)} className="sr-only">
@@ -315,7 +311,7 @@ export function BriefForm() {
                         />
                       )}
                     </div>
-                    <div className="grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_8.5rem]">
+                    <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8.5rem]">
                       <Field path={`variants.${i}.positioning`} errors={errors}>
                         <label htmlFor={fieldId(`variants.${i}.positioning`)} className="sr-only">
                           Variant {v.key} positioning (optional)
@@ -367,11 +363,11 @@ export function BriefForm() {
             }
           >
             {presetsFailed && (
-              <p className="mb-3 text-sm text-sub">Presets didn&apos;t load. Describe each segment in your own words instead.</p>
+              <p className="mb-4 text-sm text-sub">Presets didn&apos;t load. Describe each segment in your own words instead.</p>
             )}
             <div className="grid gap-3">
               {form.segments.map((s, i) => (
-                <fieldset key={i} className="grid grid-cols-[2rem_minmax(0,1fr)] gap-x-3">
+                <fieldset key={i} className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-x-3">
                   <legend className="sr-only">Segment {i + 1}</legend>
                   <Badge>{i + 1}</Badge>
                   <Field path={`segments.${i}`} errors={errors}>
@@ -434,16 +430,16 @@ export function BriefForm() {
             </div>
           </Cue>
 
-          <div className="border-t border-line p-5 sm:p-7">
+          <div className="border-t border-line pt-10">
             {/* Shown next to the button that caused it, so it can't land off-screen. */}
             {banner && (
-              <div role="alert" className="mb-5 flex gap-3 border border-skeptic/70 bg-skeptic/10 px-4 py-3">
-                <TriangleAlert aria-hidden className="mt-0.5 size-5 shrink-0 text-skeptic" strokeWidth={2} />
+              <div role="alert" className="mb-6 flex gap-3 rounded-xl border border-skeptic/50 bg-skeptic/5 px-4 py-3">
+                <TriangleAlert aria-hidden className="mt-0.5 size-5 shrink-0 text-skeptic" strokeWidth={1.75} />
                 <div className="min-w-0">
-                  <p className="font-medium text-white">{banner}</p>
+                  <p className="text-text">{banner}</p>
                   <p className="mt-1 text-sm text-sub">
                     Your brief is still here.{" "}
-                    <button type="button" onClick={() => submit()} className="font-semibold text-signal underline">
+                    <button type="button" onClick={() => submit()} className="text-gold underline">
                       Try again
                     </button>
                     {examples.length > 0 && " or open an example run."}
@@ -454,21 +450,21 @@ export function BriefForm() {
             <button
               type="submit"
               disabled={submitting}
-              className="cut tag group relative flex h-16 w-full items-center justify-center gap-3 overflow-hidden bg-signal text-2xl text-ink transition-[background-color,transform] duration-150 hover:bg-white active:translate-y-px disabled:cursor-progress disabled:bg-[#3b3a1a] disabled:text-signal"
+              className="group relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full bg-text text-base font-medium text-ink transition-colors duration-300 hover:bg-gold disabled:cursor-progress disabled:bg-raise disabled:text-sub"
             >
               {submitting && (
-                <span aria-hidden className="absolute inset-0 origin-left animate-fill bg-signal/25 motion-reduce:hidden" />
+                <span aria-hidden className="absolute inset-0 origin-left animate-fill bg-gold/15 motion-reduce:hidden" />
               )}
               <span className="relative">{submitting ? "Finding comparables…" : "Find comparables"}</span>
               {!submitting && (
                 <ArrowRight
                   aria-hidden
-                  className="relative size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                  strokeWidth={2.5}
+                  className="relative size-4 transition-transform duration-300 group-hover:translate-x-0.5"
+                  strokeWidth={2}
                 />
               )}
             </button>
-            <p role="status" className="mt-3 text-center text-[13px] text-faint">
+            <p role="status" className="mt-4 text-center text-[13px] text-faint">
               {submitting
                 ? "An AI suggests competitor brands, then each one is checked against Qloo. This takes 10 to 20 seconds."
                 : "Next, you confirm 3 to 6 comparable brands before the panel starts."}
@@ -476,15 +472,15 @@ export function BriefForm() {
           </div>
         </form>
 
-        <aside className="grid content-start gap-10">
+        <aside className="grid content-start gap-12 lg:pt-1">
           {samples.length > 0 && (
             <section aria-labelledby="samples-head">
-              <h3 id="samples-head" className="tag text-sm text-signal">
+              <h3 id="samples-head" className="text-sm text-sub">
                 Start from a sample
               </h3>
-              <ul className="mt-3 grid gap-2">
+              <ul className="mt-4 border-t border-line">
                 {samples.map((b) => (
-                  <li key={b.description}>
+                  <li key={b.description} className="border-b border-line">
                     <button
                       type="button"
                       onClick={() => {
@@ -492,31 +488,31 @@ export function BriefForm() {
                         setErrors({});
                         setBanner(null);
                       }}
-                      className="w-full border border-line px-4 py-3 text-left transition-colors hover:border-signal/60 hover:bg-white/5"
+                      className="group w-full py-4 text-left"
                     >
-                      <span className="block text-sm font-semibold text-white">{b.variants[0].name}</span>
-                      <span className="mt-0.5 line-clamp-2 block text-[13px] leading-snug text-sub">{b.description}</span>
+                      <span className="flex items-center justify-between text-[15px] text-text transition-colors group-hover:text-gold">
+                        {b.variants[0].name}
+                        <ArrowRight aria-hidden className="size-3.5 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+                      </span>
+                      <span className="mt-1 line-clamp-2 block text-[13px] leading-snug text-faint">{b.description}</span>
                     </button>
                   </li>
                 ))}
               </ul>
-              <p className="mt-2 text-xs text-faint">Fills the form. Nothing runs until you submit.</p>
+              <p className="mt-3 text-xs text-faint">Fills the form. Nothing runs until you submit.</p>
             </section>
           )}
           {examples.length > 0 && (
             <section aria-labelledby="examples-head">
-              <h3 id="examples-head" className="tag text-sm text-signal">
+              <h3 id="examples-head" className="text-sm text-sub">
                 Try an example
               </h3>
-              <ul className="mt-3 grid gap-2">
+              <ul className="mt-4 border-t border-line">
                 {examples.map((x) => (
-                  <li key={x.run_id}>
-                    <Link
-                      href={`/runs/${x.run_id}/report`}
-                      className="block border border-line px-4 py-3 transition-colors hover:border-signal/60 hover:bg-white/5"
-                    >
-                      <span className="block text-sm font-semibold text-white">{x.title}</span>
-                      {x.verdict_sentence && <span className="mt-0.5 block text-[13px] text-sub">{x.verdict_sentence}</span>}
+                  <li key={x.run_id} className="border-b border-line">
+                    <Link href={`/runs/${x.run_id}/report`} className="group block py-4">
+                      <span className="block text-[15px] text-text transition-colors group-hover:text-gold">{x.title}</span>
+                      {x.verdict_sentence && <span className="mt-1 block text-[13px] text-faint">{x.verdict_sentence}</span>}
                     </Link>
                   </li>
                 ))}
@@ -538,28 +534,28 @@ function Measured() {
   ];
   return (
     <section aria-labelledby="measured-head">
-      <h3 id="measured-head" className="tag text-sm text-signal">
+      <h3 id="measured-head" className="text-sm text-sub">
         Computed from data, not the AI
       </h3>
-      <dl className="mt-3 divide-y divide-line border-y border-line">
+      <dl className="mt-4 border-t border-line">
         {rows.map(([k, v]) => (
-          <div key={k} className="py-2.5">
-            <dt className="text-sm font-semibold text-white">{k}</dt>
-            <dd className="mt-0.5 text-[13px] leading-snug text-sub">{v}</dd>
+          <div key={k} className="border-b border-line py-3.5">
+            <dt className="text-[15px] text-text">{k}</dt>
+            <dd className="mt-1 text-[13px] leading-snug text-faint">{v}</dd>
           </div>
         ))}
       </dl>
-      <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs" aria-label="Stances">
+      <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs" aria-label="Stances">
         <li className="flex items-center gap-1.5 text-enthusiast">
-          <span aria-hidden className="size-1.5 bg-enthusiast" />
+          <span aria-hidden className="size-1.5 rounded-full bg-enthusiast" />
           Enthusiast
         </li>
         <li className="flex items-center gap-1.5 text-conditional">
-          <span aria-hidden className="size-1.5 bg-conditional" />
+          <span aria-hidden className="size-1.5 rounded-full bg-conditional" />
           Conditional
         </li>
         <li className="flex items-center gap-1.5 text-skeptic">
-          <span aria-hidden className="size-1.5 bg-skeptic" />
+          <span aria-hidden className="size-1.5 rounded-full bg-skeptic" />
           Skeptic
         </li>
       </ul>
@@ -567,7 +563,7 @@ function Measured() {
   );
 }
 
-/** One step of the brief: a numbered cue with its label and hint on top, controls below. */
+/** One step of the brief: its label and hint on the left, controls on the right. */
 function Cue({
   n,
   title,
@@ -587,23 +583,19 @@ function Cue({
 }) {
   const Title = htmlFor ? "label" : "h3";
   return (
-    <section aria-label={title} className="border-t border-line p-5 first:border-t-0 sm:p-7">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
-        <div className="flex gap-3">
-          <span aria-hidden className="display w-6 shrink-0 text-[2.5rem] text-signal">
-            {n}
-          </span>
-          <div>
-            <Title htmlFor={htmlFor} className="tag block text-xl text-white">
-              {title}
-              {meta && <span className="ml-2 text-sm font-normal text-faint">{meta}</span>}
-            </Title>
-            <p className="mt-0.5 max-w-[56ch] text-sm leading-snug text-sub">{hint}</p>
-          </div>
-        </div>
-        {action}
+    <section aria-label={title} className="grid gap-x-10 gap-y-5 border-b border-line py-10 last:border-b-0 md:grid-cols-[13rem_minmax(0,1fr)]">
+      <div>
+        <span aria-hidden className="text-sm tabular-nums text-gold">
+          {String(n).padStart(2, "0")}
+        </span>
+        <Title htmlFor={htmlFor} className="mt-2 block text-xl tracking-[-0.01em] text-text">
+          {title}
+          {meta && <span className="ml-2 text-sm text-faint">{meta}</span>}
+        </Title>
+        <p className="mt-1.5 text-sm leading-relaxed text-sub">{hint}</p>
+        {action && <div className="mt-4">{action}</div>}
       </div>
-      <div className="sm:pl-9">{children}</div>
+      <div className="min-w-0">{children}</div>
     </section>
   );
 }
@@ -614,8 +606,8 @@ function Field({ path, errors, className, children }: { path: string; errors: Er
     <div className={className}>
       {children}
       {msg && (
-        <p id={`${fieldId(path)}-error`} className="mt-1.5 flex items-center gap-1.5 text-[13px] font-medium text-skeptic">
-          <TriangleAlert aria-hidden className="size-3.5 shrink-0" strokeWidth={2.25} />
+        <p id={`${fieldId(path)}-error`} className="mt-2 flex items-center gap-1.5 text-[13px] text-skeptic">
+          <TriangleAlert aria-hidden className="size-3.5 shrink-0" strokeWidth={2} />
           {msg}
         </p>
       )}
@@ -651,7 +643,7 @@ function SelectBox({
       >
         {children}
       </select>
-      <ChevronDown aria-hidden className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-ink" strokeWidth={2.25} />
+      <ChevronDown aria-hidden className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-sub" strokeWidth={1.75} />
     </div>
   );
 }
@@ -671,7 +663,7 @@ function PriceInput({
 }) {
   return (
     <div className="relative">
-      <span aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 font-semibold text-ink">
+      <span aria-hidden className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sub">
         $
       </span>
       <input
@@ -682,7 +674,7 @@ function PriceInput({
         placeholder={placeholder}
         aria-invalid={invalid}
         aria-describedby={invalid ? `${id}-error` : undefined}
-        className={`${inputCls} pl-7 text-right font-medium`}
+        className={`${inputCls} pl-8 text-right tabular-nums`}
       />
     </div>
   );
@@ -704,12 +696,12 @@ function ModeSwitch({
     ["text", "Describe"],
   ];
   return (
-    <div role="radiogroup" aria-label="Segment type" className="flex h-12 border border-white/25 bg-navy p-1">
+    <div role="radiogroup" aria-label="Segment type" className="flex h-12 rounded-full border border-line-2 bg-raise p-1">
       {opts.map(([m, label]) => (
         <label
           key={m}
-          className={`flex cursor-pointer items-center px-3 text-[13px] font-medium transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-signal ${
-            value === m ? "bg-signal text-ink" : "text-sub hover:text-white"
+          className={`flex cursor-pointer items-center rounded-full px-4 text-[13px] transition-colors duration-300 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold ${
+            value === m ? "bg-text text-ink" : "text-sub hover:text-text"
           } ${m === "preset" && disabledPreset ? "cursor-not-allowed opacity-50" : ""}`}
         >
           <input
@@ -730,7 +722,7 @@ function ModeSwitch({
 
 function Badge({ children }: { children: ReactNode }) {
   return (
-    <span aria-hidden className="tag display flex h-12 items-center justify-center text-2xl text-signal">
+    <span aria-hidden className="flex h-12 items-center text-sm tabular-nums text-faint">
       {children}
     </span>
   );
@@ -741,9 +733,9 @@ function AddButton({ onClick, children }: { onClick: () => void; children: React
     <button
       type="button"
       onClick={onClick}
-      className="flex h-8 items-center gap-1.5 border border-white/25 px-3 text-[13px] font-medium text-white transition-colors hover:border-signal hover:text-signal active:scale-[0.98]"
+      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line-2 px-3.5 text-[13px] text-text transition-colors duration-300 hover:border-gold hover:text-gold"
     >
-      <Plus aria-hidden className="size-3.5" strokeWidth={2.5} />
+      <Plus aria-hidden className="size-3.5" strokeWidth={2} />
       {children}
     </button>
   );
@@ -755,9 +747,9 @@ function IconButton({ label, onClick }: { label: string; onClick: () => void }) 
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="flex size-11 shrink-0 items-center justify-center border border-white/25 text-sub transition-colors hover:border-skeptic hover:text-skeptic active:scale-[0.97]"
+      className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-line-2 text-sub transition-colors duration-300 hover:border-skeptic hover:text-skeptic"
     >
-      <X aria-hidden className="size-4" strokeWidth={2.25} />
+      <X aria-hidden className="size-4" strokeWidth={1.75} />
     </button>
   );
 }

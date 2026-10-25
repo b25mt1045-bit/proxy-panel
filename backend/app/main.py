@@ -22,6 +22,7 @@ from app.db import Comparable, Db, QlooCache, Run
 from app.guards import ApiError, check, client_ip
 from app.llm import LLMError
 from app.models import Brief
+from app.presets import EXAMPLE_BRIEFS, PRESETS
 from app.qloo import Qloo, QlooError, run_ctx
 
 _tasks: set[asyncio.Task] = set()  # keeps pipeline tasks alive after the request returns
@@ -239,6 +240,12 @@ async def get_report(run_id: str, req: Request):
     if run.status != "done":
         raise ApiError(409, "bad_status", f"Run is {run.status}; the report is ready once it is done.")
     return run.report or await report.compute(db, run_id)
+
+
+@app.get("/presets")
+async def presets():
+    """Segment presets for the brief form, plus sample briefs it can prefill (input only, not results)."""
+    return {"presets": [{"id": k, "label": v["label"]} for k, v in PRESETS.items()], "sample_briefs": EXAMPLE_BRIEFS}
 
 
 @app.get("/examples")

@@ -81,14 +81,15 @@ async def _provider(model, system, user, schema, tools, temperature):
 
 
 async def _post(url: str, body: dict) -> dict:
-    """30 s timeout; one retry on timeout, 5xx or 429 (free-tier rate limit, waits the delay Gemini asks for)."""
+    """30 s timeout; one retry on a network error (timeout, DNS, reset), 5xx or 429 (waits the delay Gemini asks for)."""
     async with httpx.AsyncClient(timeout=30) as client:
         for attempt in (1, 2):
             try:
                 r = await client.post(url, json=body, headers={"x-goog-api-key": settings.LLM_API_KEY})
-            except httpx.TimeoutException as e:
+            except httpx.TransportError as e:
                 if attempt == 2:
-                    raise LLMError("Gemini timed out twice") from e
+                    raise LLMError(f"Gemini unreachable twice: {e!r}") from e
+                await asyncio.sleep(1)
                 continue
             if (r.status_code == 429 or r.status_code >= 500) and attempt == 1:
                 await asyncio.sleep(_retry_delay(r) if r.status_code == 429 else 1)

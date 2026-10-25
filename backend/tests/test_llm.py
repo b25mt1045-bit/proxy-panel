@@ -94,6 +94,17 @@ async def test_gemini_retries_rate_limit_once(gemini, monkeypatch):
         await llm.complete("p", "small", "s", "u")
 
 
+async def test_gemini_retries_network_error_once(gemini, monkeypatch):
+    real_sleep = asyncio.sleep
+    monkeypatch.setattr(llm.asyncio, "sleep", lambda s: real_sleep(0))
+    dns = httpx.ConnectError("[Errno 11001] getaddrinfo failed")
+    gemini.post(f"{llm.GEMINI_URL}/small-m:generateContent").mock(side_effect=[dns, reply({"text": "hi"})])
+    assert await llm.complete("p", "small", "s", "u") == "hi"
+    gemini.post(f"{llm.GEMINI_URL}/small-m:generateContent").mock(side_effect=[dns, dns])
+    with pytest.raises(llm.LLMError, match="unreachable twice"):
+        await llm.complete("p", "small", "s", "u")
+
+
 async def test_gemini_needs_key(gemini, monkeypatch):
     monkeypatch.setattr(llm.settings, "LLM_API_KEY", "")
     with pytest.raises(llm.LLMError, match="Set LLM_API_KEY"):
