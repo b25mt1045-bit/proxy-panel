@@ -130,8 +130,8 @@ function parseServerError(message: string): [string, string] | null {
 
 const inputCls =
   "h-12 w-full rounded-xl border border-line-2 bg-raise px-4 text-[15px] text-text placeholder:text-faint " +
-  "transition-[border-color,box-shadow] duration-300 hover:border-[#454850] focus:border-gold focus:outline-none " +
-  "focus:ring-4 focus:ring-gold/10 aria-[invalid=true]:border-skeptic";
+  "transition-[border-color,box-shadow] duration-300 hover:border-text focus:border-pop focus:outline-none " +
+  "focus:ring-4 focus:ring-pop/10 aria-[invalid=true]:border-skeptic";
 
 export function BriefForm() {
   const router = useRouter();
@@ -199,18 +199,20 @@ export function BriefForm() {
   const usedPresets = new Set(form.segments.map((s) => (s.mode === "preset" ? s.preset_id : "")).filter(Boolean));
 
   return (
-    <section id="brief" aria-labelledby="brief-head">
-      <div className="mx-auto grid max-w-6xl gap-x-16 gap-y-14 px-5 pb-32 pt-32 sm:px-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
+    <section id="brief" aria-labelledby="brief-head" className="scroll-mt-16">
+      <div className="mx-auto grid max-w-6xl gap-x-12 gap-y-10 px-5 pb-24 pt-20 sm:px-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
         <div className="lg:col-span-2">
-          <h2 id="brief-head" className="text-[clamp(2.5rem,5.5vw,4.5rem)] font-light leading-[1] tracking-[-0.035em] text-text">
-            Brief the <span className="accent text-gold">panel.</span>
+          <p className="font-hand text-3xl text-pop">your turn!</p>
+          <h2 id="brief-head" className="mt-1 font-serif text-[clamp(2.2rem,5vw,3.6rem)] font-bold leading-[1.05] tracking-[-0.02em] text-text">
+            Tell us about your product.
           </h2>
-          <p id="brief-intro" className="mt-6 max-w-[52ch] text-[17px] leading-relaxed text-sub">
-            Four short answers. Nothing runs until you confirm the comparable brands on the next screen.
+          <p id="brief-intro" className="mt-4 max-w-[56ch] text-lg leading-relaxed text-sub">
+            Answer the four questions below, or tap a sample on the right to fill them in. Nothing runs until you confirm the
+            comparable brands on the next screen.
           </p>
         </div>
 
-        <form onSubmit={submit} noValidate aria-describedby="brief-intro" className="border-t border-line">
+        <form onSubmit={submit} noValidate aria-describedby="brief-intro" className="sticker rounded-3xl bg-raise px-6 sm:px-10">
           <Cue n={1} title="Product" hint="What it is and what makes it different." htmlFor={fieldId("description")}>
             <Field path="description" errors={errors}>
               <textarea
@@ -430,7 +432,7 @@ export function BriefForm() {
             </div>
           </Cue>
 
-          <div className="border-t border-line pt-10">
+          <div className="py-10">
             {/* Shown next to the button that caused it, so it can't land off-screen. */}
             {banner && (
               <div role="alert" className="mb-6 flex gap-3 rounded-xl border border-skeptic/50 bg-skeptic/5 px-4 py-3">
@@ -439,7 +441,7 @@ export function BriefForm() {
                   <p className="text-text">{banner}</p>
                   <p className="mt-1 text-sm text-sub">
                     Your brief is still here.{" "}
-                    <button type="button" onClick={() => submit()} className="text-gold underline">
+                    <button type="button" onClick={() => submit()} className="text-pop underline">
                       Try again
                     </button>
                     {examples.length > 0 && " or open an example run."}
@@ -450,10 +452,10 @@ export function BriefForm() {
             <button
               type="submit"
               disabled={submitting}
-              className="group relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full bg-text text-base font-medium text-ink transition-colors duration-300 hover:bg-gold disabled:cursor-progress disabled:bg-raise disabled:text-sub"
+              className="group relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden sticker rounded-full bg-sun text-base font-semibold text-text transition-transform duration-300 hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-progress disabled:bg-raise disabled:text-sub"
             >
               {submitting && (
-                <span aria-hidden className="absolute inset-0 origin-left animate-fill bg-gold/15 motion-reduce:hidden" />
+                <span aria-hidden className="absolute inset-0 origin-left animate-fill bg-pop/15 motion-reduce:hidden" />
               )}
               <span className="relative">{submitting ? "Finding comparables…" : "Find comparables"}</span>
               {!submitting && (
@@ -490,7 +492,7 @@ export function BriefForm() {
                       }}
                       className="group w-full py-4 text-left"
                     >
-                      <span className="flex items-center justify-between text-[15px] text-text transition-colors group-hover:text-gold">
+                      <span className="flex items-center justify-between text-[15px] text-text transition-colors group-hover:text-pop">
                         {b.variants[0].name}
                         <ArrowRight aria-hidden className="size-3.5 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
                       </span>
@@ -511,7 +513,7 @@ export function BriefForm() {
                 {examples.map((x) => (
                   <li key={x.run_id} className="border-b border-line">
                     <Link href={`/runs/${x.run_id}/report`} className="group block py-4">
-                      <span className="block text-[15px] text-text transition-colors group-hover:text-gold">{x.title}</span>
+                      <span className="block text-[15px] text-text transition-colors group-hover:text-pop">{x.title}</span>
                       {x.verdict_sentence && <span className="mt-1 block text-[13px] text-faint">{x.verdict_sentence}</span>}
                     </Link>
                   </li>
@@ -563,6 +565,8 @@ function Measured() {
   );
 }
 
+const CUE_BG = ["bg-sky", "bg-sun", "bg-mint", "bg-peach"];
+
 /** One step of the brief: its label and hint on the left, controls on the right. */
 function Cue({
   n,
@@ -585,10 +589,13 @@ function Cue({
   return (
     <section aria-label={title} className="grid gap-x-10 gap-y-5 border-b border-line py-10 last:border-b-0 md:grid-cols-[13rem_minmax(0,1fr)]">
       <div>
-        <span aria-hidden className="text-sm tabular-nums text-gold">
-          {String(n).padStart(2, "0")}
+        <span
+          aria-hidden
+          className={`flex size-10 items-center justify-center rounded-full border-2 border-text font-serif text-lg font-bold ${CUE_BG[(n - 1) % CUE_BG.length]}`}
+        >
+          {n}
         </span>
-        <Title htmlFor={htmlFor} className="mt-2 block text-xl tracking-[-0.01em] text-text">
+        <Title htmlFor={htmlFor} className="mt-3 block font-serif text-2xl font-bold text-text">
           {title}
           {meta && <span className="ml-2 text-sm text-faint">{meta}</span>}
         </Title>
@@ -700,7 +707,7 @@ function ModeSwitch({
       {opts.map(([m, label]) => (
         <label
           key={m}
-          className={`flex cursor-pointer items-center rounded-full px-4 text-[13px] transition-colors duration-300 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold ${
+          className={`flex cursor-pointer items-center rounded-full px-4 text-[13px] transition-colors duration-300 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-pop ${
             value === m ? "bg-text text-ink" : "text-sub hover:text-text"
           } ${m === "preset" && disabledPreset ? "cursor-not-allowed opacity-50" : ""}`}
         >
@@ -733,7 +740,7 @@ function AddButton({ onClick, children }: { onClick: () => void; children: React
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line-2 px-3.5 text-[13px] text-text transition-colors duration-300 hover:border-gold hover:text-gold"
+      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line-2 px-3.5 text-[13px] text-text transition-colors duration-300 hover:border-pop hover:text-pop"
     >
       <Plus aria-hidden className="size-3.5" strokeWidth={2} />
       {children}

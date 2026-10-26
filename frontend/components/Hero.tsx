@@ -1,101 +1,76 @@
-"use client";
+import { ArrowRight } from "lucide-react";
 
-import { useGSAP } from "@gsap/react";
-import { ArrowDown, ArrowRight } from "lucide-react";
-import { useRef } from "react";
+type Stance = "enthusiast" | "conditional" | "skeptic";
+const STANCE: Record<Stance, { label: string; cls: string }> = {
+  enthusiast: { label: "Enthusiast", cls: "text-enthusiast" },
+  conditional: { label: "On the fence", cls: "text-conditional" },
+  skeptic: { label: "Skeptic", cls: "text-skeptic" },
+};
 
-import { Mark } from "@/components/Mark";
-import { gsap, onIntroDone, scrollToId, SplitText } from "@/lib/motion";
+// Illustration only: shows the shape of a panel, not real output.
+const PANEL: { name: string; who: string; stance: Stance; says: string; bg: string; tilt: string }[] = [
+  { name: "Maya", who: "Wellness runner", stance: "enthusiast", says: "I'd swap my kombucha for this.", bg: "bg-mint", tilt: "-rotate-2" },
+  { name: "Dev", who: "Office snacker", stance: "conditional", says: "Cute can. $3.29 though?", bg: "bg-sun", tilt: "rotate-2" },
+  { name: "Ruth", who: "Budget parent", stance: "skeptic", says: "My kids won't drink 'adaptogens'.", bg: "bg-peach", tilt: "-rotate-1" },
+  { name: "Leo", who: "Gym regular", stance: "enthusiast", says: "Low sugar? I'm in.", bg: "bg-sky", tilt: "rotate-1" },
+  { name: "Ana", who: "Foodie", stance: "conditional", says: "Show me the flavours first.", bg: "bg-lilac", tilt: "-rotate-2" },
+  { name: "Sam", who: "Soda loyalist", stance: "skeptic", says: "Coke already does this job.", bg: "bg-tomato", tilt: "rotate-2" },
+];
 
 export function Hero() {
-  const root = useRef<HTMLElement>(null);
-
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const split = new SplitText("[data-headline]", { type: "words,lines", mask: "lines" });
-        gsap.set(split.words, { yPercent: 110 });
-        gsap.set("[data-rise]", { y: 24, opacity: 0 });
-        const off = onIntroDone(() => {
-          gsap
-            .timeline({ defaults: { ease: "expo.out" } })
-            .to(split.words, { yPercent: 0, duration: 1.3, stagger: 0.06 })
-            .to("[data-rise]", { y: 0, opacity: 1, duration: 1.1, stagger: 0.1 }, 0.45);
-        });
-        // The big table drifts slower than the page, and turns very slowly on its own.
-        gsap.to("[data-orbit]", {
-          yPercent: 18,
-          ease: "none",
-          scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: true },
-        });
-        return () => {
-          off();
-          split.revert();
-        };
-      });
-    },
-    { scope: root },
-  );
-
-  const startBrief = (e: React.MouseEvent) => {
-    e.preventDefault();
-    scrollToId("brief", () => document.getElementById("f-description")?.focus({ preventScroll: true }));
-  };
-
   return (
-    <section ref={root} aria-labelledby="hero-head" className="relative flex min-h-[100svh] items-center overflow-hidden">
-      <div
-        data-orbit
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[80%] w-[min(1100px,150vw)] sm:top-[74%] -translate-x-1/2 opacity-40"
-      >
-        <Mark outline className="w-full motion-safe:animate-[spin-slow_160s_linear_infinite]" ring="var(--color-sub)" />
-      </div>
-      {/* Keeps the type legible over the mark: the room darkens toward the edges. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_40%,transparent_25%,rgba(14,15,17,0.7)_80%)]" />
-
-      <div className="relative mx-auto w-full max-w-6xl px-5 pb-24 pt-32 text-center sm:px-8">
-        <h1
-          id="hero-head"
-          data-headline
-          className="mx-auto max-w-[14ch] text-balance text-[clamp(2.75rem,min(7.2vw,12.5svh),6rem)] font-light leading-[0.98] tracking-[-0.035em] text-text"
-        >
-          Know who buys it <span className="accent text-gold">before</span> you launch.
+    <section className="mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-14 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:pt-20">
+      <div>
+        <p className="font-hand text-3xl text-pop">Hello! 👋</p>
+        <h1 className="mt-2 font-serif text-[clamp(2.6rem,6vw,4.4rem)] font-bold leading-[1.02] tracking-[-0.02em]">
+          Test your product on six shoppers{" "}
+          <span className="italic underline decoration-sun decoration-[0.18em] underline-offset-[0.12em]">before</span> you launch.
         </h1>
-        <p data-rise className="mx-auto mt-8 max-w-[52ch] text-pretty text-[17px] leading-relaxed text-sub">
-          A focus group of six panelists built from Qloo taste data. Describe your product, and in about 90 seconds you learn
-          which audience to launch to, what will stop them buying, and the price they expect.
+        <p className="mt-6 max-w-[48ch] text-lg leading-relaxed text-sub">
+          Describe your product. Six panelists, built from real Qloo taste data, argue about it. You get a short report: who to
+          sell to first, what puts people off, and what they&apos;d pay.
         </p>
-        <div data-rise className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+        <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4">
           <a
             href="#brief"
-            onClick={startBrief}
-            className="group inline-flex h-12 items-center gap-2.5 rounded-full bg-text pl-6 pr-5 text-[15px] font-medium text-ink transition-colors duration-300 hover:bg-gold"
+            className="sticker group inline-flex h-14 items-center gap-2 rounded-full bg-sun px-7 text-base font-semibold transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
           >
-            Brief the panel
-            <ArrowRight aria-hidden className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2} />
+            Start your brief
+            <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2.25} />
           </a>
-          <a
-            href="#how"
-            onClick={(e) => {
-              e.preventDefault();
-              scrollToId("how");
-            }}
-            className="inline-flex items-center gap-2 text-[15px] text-sub transition-colors hover:text-text"
-          >
-            See how it works
-            <ArrowDown aria-hidden className="size-4" strokeWidth={1.75} />
+          <a href="#how" className="font-medium underline decoration-2 hover:text-pop">
+            How does it work?
           </a>
         </div>
+        <p className="mt-5 font-hand text-2xl text-sub">takes about 2 minutes, free to try</p>
       </div>
 
-      <div data-rise aria-hidden className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 [@media(max-height:760px)]:hidden">
-        <span className="text-[11px] uppercase tracking-[0.3em] text-faint">Scroll</span>
-        <span className="h-10 w-px bg-line">
-          <span className="block h-full w-px bg-sub motion-safe:animate-[cue_2.4s_var(--ease-out-expo)_infinite]" />
-        </span>
-      </div>
+      <figure>
+        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          {PANEL.map((p, i) => (
+            <li
+              key={p.name}
+              className={`sticker rounded-3xl ${p.bg} ${p.tilt} p-4 transition-transform duration-300 hover:-translate-y-1 hover:rotate-0 motion-safe:animate-float`}
+              style={{ animationDelay: `${i * -0.8}s` }}
+            >
+              <div className="flex items-center gap-2.5">
+                <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-full border-2 border-text bg-raise font-serif font-bold">
+                  {p.name[0]}
+                </span>
+                <span className="min-w-0 leading-tight">
+                  <span className="block font-semibold">{p.name}</span>
+                  <span className="block text-xs">{p.who}</span>
+                </span>
+              </div>
+              <p className="mt-3 rounded-2xl bg-raise px-3 py-2 text-sm leading-snug">&ldquo;{p.says}&rdquo;</p>
+              <p className={`mt-2 w-fit rounded-full bg-raise px-2 py-0.5 text-xs font-bold uppercase tracking-wide ${STANCE[p.stance].cls}`}>
+                {STANCE[p.stance].label}
+              </p>
+            </li>
+          ))}
+        </ul>
+        <figcaption className="mt-5 text-center font-hand text-xl text-sub">an example panel for a low-sugar soda</figcaption>
+      </figure>
     </section>
   );
 }

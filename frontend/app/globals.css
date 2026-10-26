@@ -1,24 +1,32 @@
 @import "tailwindcss";
 
-/* Graphite: a quiet dark room, warm off-white type, one pale-gold accent kept for the six panelists and the main action.
-   Stance colours always travel with a label. */
+/* Sticker: warm cream paper, near-black ink, bright sticker colours for fun. Stance colours always travel with a label. */
 @theme {
-  --color-bg: #0e0f11;
-  --color-raise: #15171a; /* fields, raised surfaces */
-  --color-line: #26282d; /* hairlines */
-  --color-line-2: #34373d; /* field borders */
-  --color-text: #ece8e1; /* 15.6:1 on bg */
-  --color-sub: #a29e95; /* 7:1 */
-  --color-faint: #7f7b74; /* 4.6:1 */
-  --color-gold: #d9c08c; /* accent: the panel, the primary action */
-  --color-ink: #0e0f11; /* text on gold / off-white */
-  --color-enthusiast: #8fcfa6;
-  --color-conditional: #e3bd78;
-  --color-skeptic: #e8928a;
-  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-bodoni), ui-serif, Georgia, serif;
+  --color-bg: #f7f4ed;
+  --color-raise: #ffffff; /* fields, cards */
+  --color-line: #e4dfd4; /* hairlines */
+  --color-line-2: #cfcac0; /* field borders */
+  --color-text: #0f0f0f;
+  --color-sub: #42423a; /* 9.6:1 on bg */
+  --color-faint: #66655d; /* 5.3:1 */
+  --color-pop: #1f5fd6; /* links, focus, the primary action hover. 5.3:1 */
+  --color-ink: #f7f4ed; /* text on dark or pop */
+  /* Sticker fills, always under dark text */
+  --color-sky: #9cc9f2;
+  --color-sun: #f0cd3e;
+  --color-mint: #a8e0c4;
+  --color-peach: #fcd3ac;
+  --color-tomato: #ff7a52;
+  --color-lilac: #cdbdf5;
+  --color-enthusiast: #0b7a55;
+  --color-conditional: #8a5f00;
+  --color-skeptic: #c2410c;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-averia), ui-serif, Georgia, serif;
+  --font-hand: var(--font-caveat), cursive;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --animate-fill: fill 18s var(--ease-out-expo) forwards;
+  --animate-float: float 5s ease-in-out infinite;
   @keyframes fill {
     from {
       transform: scaleX(0);
@@ -27,102 +35,43 @@
       transform: scaleX(0.92);
     }
   }
-}
-
-/* The serif voice: Bodoni italic, kept to one or two words at a time. */
-@utility accent {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-}
-
-@keyframes spin-slow {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@keyframes marquee {
-  to {
-    transform: translateX(-50%);
-  }
-}
-@keyframes cue {
-  0% {
-    transform: scaleY(0);
-    transform-origin: top;
-  }
-  45% {
-    transform: scaleY(1);
-    transform-origin: top;
-  }
-  55% {
-    transform: scaleY(1);
-    transform-origin: bottom;
-  }
-  100% {
-    transform: scaleY(0);
-    transform-origin: bottom;
+  @keyframes float {
+    50% {
+      transform: translateY(-6px);
+    }
   }
 }
 
-/* Intro: shown only when the inline head script decides it should play (first visit this session, motion allowed).
-   If scripts fail, the failsafe hides it after 4s so the page is never blocked. */
-.intro {
-  display: none;
-}
-html[data-intro="play"] .intro {
-  display: flex;
-  animation: intro-failsafe 0.4s ease 4s forwards;
-}
-html[data-intro="play"] .site-header {
-  opacity: 0;
-  animation: header-failsafe 0.4s ease 4s forwards;
-}
-@keyframes intro-failsafe {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-@keyframes header-failsafe {
-  to {
-    opacity: 1;
-  }
+/* The sticker look: thick ink border with a hard offset shadow. */
+@utility sticker {
+  border: 2px solid var(--color-text);
+  box-shadow: 4px 4px 0 0 var(--color-text);
 }
 
 @layer base {
   html {
-    color-scheme: dark;
-    scrollbar-color: var(--color-line-2) var(--color-bg);
+    color-scheme: light;
   }
-  html.lenis,
-  html.lenis body {
-    height: auto;
-  }
-  .lenis.lenis-smooth {
-    scroll-behavior: auto !important;
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
   body {
     overflow-x: clip;
     background: var(--color-bg);
     color: var(--color-text);
-    caret-color: var(--color-gold);
-    font-feature-settings: "ss01" 1;
+    caret-color: var(--color-pop);
   }
   ::selection {
-    background: var(--color-gold);
-    color: var(--color-ink);
+    background: var(--color-sun);
+    color: var(--color-text);
   }
   :focus-visible {
-    outline: 2px solid var(--color-gold);
+    outline: 2px solid var(--color-pop);
     outline-offset: 3px;
   }
   a {
     text-underline-offset: 4px;
-  }
-  select option {
-    background: var(--color-raise);
-    color: var(--color-text);
   }
 }
