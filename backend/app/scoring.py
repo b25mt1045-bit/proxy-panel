@@ -1,5 +1,7 @@
 """Pure scoring functions (no I/O). Code computes the numbers; the LLM only explains them."""
 
+from statistics import median
+
 
 def lift(persona: dict[str, float], baseline: dict[str, float], qloo_id: str) -> float:
     """Persona affinity minus baseline affinity for the same entity. 0 when either side has no data."""
@@ -47,9 +49,13 @@ def price_band(brands: list[tuple[int, float]]) -> tuple[float, float, bool]:
     return (max(1.0, mean - std), min(4.0, mean + std), False)
 
 
+# Price ÷ the comparables' median price: under 0.8× budget, 0.8–1.1× mid, 1.1–1.4× premium, 1.4× and up luxury.
+# A ratio, not a rank: a rank made anything above every comparable "luxury", even 50 cents over. Tune on the backtest.
+TIER_RATIOS = (0.8, 1.1, 1.4)
+
+
 def concept_tier(price: float, comparable_prices: list[float]) -> int:
-    p = sum(cp < price for cp in comparable_prices) / len(comparable_prices)
-    return min(4, 1 + int(p * 4))
+    return 1 + sum(price / median(comparable_prices) >= r for r in TIER_RATIOS)
 
 
 def price_fit(tier: int, band: tuple[float, float, bool]) -> bool:

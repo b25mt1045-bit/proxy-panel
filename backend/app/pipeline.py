@@ -10,7 +10,8 @@ from app.db import Comparable as ComparableRow
 from app.db import Db, Persona, Receipt, Run, Statement
 from app.events import emit
 from app.models import Brief, Comparable
-from app.qloo import Qloo, QlooPartial, run_ctx
+from app.llm import LLMError
+from app.qloo import Qloo, QlooError, QlooPartial, run_ctx
 from app.scoring import concept_tier
 from app.segments import SegmentFailed, build_segment_signals
 from app.validator import cited, codes
@@ -27,7 +28,11 @@ async def run(db: Db, q: Qloo, run_id: str):
         await _finish(db, run_id, "done", ctx)
     except Exception as e:
         log.exception("run %s failed", run_id)
-        await emit(db, run_id, "error", {"message": str(e)[:300]})
+        # Raw provider errors (JSON bodies, status codes) stay in the log; the public stream gets a plain sentence.
+        msg = ("The language model is busy right now. Please try again in a minute." if isinstance(e, LLMError)
+               else "Qloo is unavailable right now. Please try again shortly." if isinstance(e, QlooError)
+               else str(e)[:300])
+        await emit(db, run_id, "error", {"message": msg})
         await _finish(db, run_id, "failed", ctx)
     finally:
         run_ctx.reset(token)

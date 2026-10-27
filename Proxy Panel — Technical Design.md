@@ -369,9 +369,12 @@ def price_band(brands: list[tuple[int, float]]) -> tuple[float, float, bool]:   
     std = (sum(l * (t - mean) ** 2 for t, l in pos) / W) ** 0.5
     return (max(1.0, mean - std), min(4.0, mean + std), False)
 
+TIER_RATIOS = (0.8, 1.1, 1.4)   # price ÷ median comparable price: <0.8 budget, <1.1 mid, <1.4 premium, else luxury
+
 def concept_tier(price: float, comparable_prices: list[float]) -> int:
-    p = sum(cp < price for cp in comparable_prices) / len(comparable_prices)
-    return min(4, 1 + int(p * 4))
+    # Changed 2026-10-27 from a rank (share of comparables cheaper) to a ratio: the rank called any price above
+    # every comparable "luxury", e.g. $3.00 vs $2.49 sodas, so no persona band ever fit.
+    return 1 + sum(price / median(comparable_prices) >= r for r in TIER_RATIOS)
 
 def price_fit(tier: int, band: tuple[float, float, bool]) -> bool:
     return band[0] <= tier <= band[1]
@@ -387,7 +390,7 @@ Comparables: Olipop w=1.0 ($2.99), Poppi w=0.5 ($2.49), Culture Pop w=0.5 ($3.49
 
 - `label_stances([0.055, -0.0125])` gives k = 1, so → `["enthusiast", "skeptic"]`.
 - `label_stances([-0.01, -0.02])` → `["skeptic", "skeptic"]` (the all-negative rule).
-- `concept_tier(3.29, [2.99, 2.49, 3.49])`: p = 2/3, so the tier is 1 + int(2.67) = **3**.
+- `concept_tier(3.29, [2.99, 2.49, 3.49])`: 3.29 / median 2.99 = 1.10, so the tier is **3** (premium). Against `[2.49, 2.49, 2.49, 1.99]`, $3.00 is 1.2× → **3**, not luxury.
 - Persona A brands `[(3, 0.12), (4, 0.06), (2, -0.01)]`: only the positive lifts count, W = 0.18, mean = 0.60/0.18 = **3.333**, var = (0.12·0.111 + 0.06·0.444)/0.18 = **0.222**, std = **0.471**, so the band is **(2.86, 3.80)**. With tier 3, `price_fit` is **true**.
 - `price_band([(2, -0.1)])` → `(1, 4, True)`.
 

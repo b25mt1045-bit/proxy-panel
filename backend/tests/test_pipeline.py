@@ -64,3 +64,16 @@ async def test_failure_marks_run_failed(db, monkeypatch):
         run = await s.get(Run, run_id)
     assert run.status == "failed" and run.events[-1] == {"seq": len(run.events), "type": "error",
                                                          "data": {"message": "persona build broke"}}
+
+
+async def test_provider_error_is_not_leaked(db, monkeypatch):
+    q, run_id = await start(db, EXAMPLE_BRIEFS[0])
+
+    async def busy(*a, **k):
+        raise pipeline.LLMError('Gemini 503: {"error": {"code": 503}}')
+
+    monkeypatch.setattr(pipeline.personas, "build", busy)
+    await pipeline.run(db, q, run_id)
+    async with db.session() as s:
+        run = await s.get(Run, run_id)
+    assert run.events[-1]["data"] == {"message": "The language model is busy right now. Please try again in a minute."}

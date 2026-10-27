@@ -95,3 +95,95 @@ export const createRun = (brief: Brief) =>
   api<CreateRunResponse>("/runs", { method: "POST", body: JSON.stringify(brief) });
 export const getPresets = () => api<PresetsResponse>("/presets");
 export const getExamples = () => api<ExamplesResponse>("/examples");
+
+// Run pages: backend/app/main.py, pipeline.py (SSE events) and report.py.
+export type RunStatus = "confirming" | "running" | "done" | "failed";
+export type Stance = "enthusiast" | "conditional" | "skeptic";
+
+export interface Receipt {
+  label: string; // R1… for tastes, C1… for comparables
+  qloo_id: string;
+  entity_name: string;
+  entity_type: string; // brand | artist | tv_show | podcast | comparable
+  lift: number; // persona affinity minus the baseline's
+}
+
+export interface Persona {
+  id: number;
+  segment: number;
+  segment_label: string;
+  name: string;
+  bio: string;
+  top: Record<string, string[]>;
+  receipts: Receipt[];
+  stance_scaled: number;
+  stance_label: Stance;
+  price_lo: number; // tiers 1–4
+  price_hi: number;
+  price_weak: boolean;
+}
+
+export interface Statement {
+  id: number;
+  persona_id: number;
+  round: number;
+  text: string;
+  receipt_labels: string[];
+  preferred_variant: "A" | "B" | null;
+  passed: boolean;
+  flags: string[];
+}
+
+export interface Moderator {
+  persona_ids: number[];
+  focus: string;
+  questions: string[];
+}
+
+export interface RunView {
+  run: { id: string; status: RunStatus; mode: string; brief: Brief; created_at: string; parent_id: string | null; child_id: string | null };
+  comparables: Comparable[];
+  personas: Persona[];
+  statements: Statement[];
+  moderator: Moderator | null;
+  warnings: string[];
+}
+
+export interface ComparableIn {
+  qloo_id: string;
+  name: string;
+  weight: number;
+  price: number;
+}
+
+export type NameLift = { name: string; lift: number };
+
+export interface Report {
+  run_id: string;
+  mode: string;
+  verdict: { segment_index: number; segment_label: string; variant: string; tier: number; confidence: "strong" | "mixed" | "weak"; sentence: string };
+  segments: { index: number; label: string; mean_stance: number; mean_scaled: number; price_fit_share: number; top_comparables: NameLift[] }[];
+  objections: {
+    text: string;
+    persona_ids: number[];
+    statement_ids: number[];
+    receipts: { persona_id: number; label: string; entity_name: string; lift: number }[];
+  }[];
+  price_bands: { concept_tier: number; personas: { persona_id: number; name: string; lo: number; hi: number; weak: boolean; fit: boolean }[] };
+  variants: { key: string; tier: number; by_segment: { index: number; mean_stance: number; price_fit_share: number; preferred_count: number }[] }[];
+  love: Record<string, NameLift[]>;
+  sensitivity: { robust: boolean; change: string };
+  interview: { recruit: string; markers: string[]; questions: string[] };
+  grounding: { rate: number; passed: number; total: number; qloo_calls: number; qloo_cache_hits: number; warnings: string[] };
+  disclaimer: string;
+}
+
+export const getRun = (id: string) => api<RunView>(`/runs/${id}`);
+export const putComparables = (id: string, comparables: ComparableIn[], variant_weights: Record<string, Record<string, number>> = {}) =>
+  api<{ run_id: string; status: "running"; stream_url: string }>(`/runs/${id}/comparables`, {
+    method: "PUT",
+    body: JSON.stringify({ comparables, variant_weights }),
+  });
+export const getReport = (id: string) => api<Report>(`/runs/${id}/report`);
+export const searchQloo = (q: string) =>
+  api<{ results: { qloo_id: string; name: string }[] }>(`/qloo/search?q=${encodeURIComponent(q)}`);

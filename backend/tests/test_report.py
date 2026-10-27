@@ -45,7 +45,7 @@ def test_confidence():
 def test_sensitivity_finds_a_flip_when_one_comparable_carries_the_lift():
     ps = [p(0, .3, 0), p(0, .3, 0), p(1, 0, .1), p(1, 0, .1)]
     out = sensitivity(ps, W, VARS, TIERS, Counter(), NAMES, LABELS)
-    assert out == {"robust": False, "change": "Setting Olipop's weight to 0 makes remote tech with variant A the top pick."}
+    assert out == {"robust": False, "change": "If Olipop isn't really a competitor, remote tech becomes the better group to launch to, with Calm Fizz."}
     ps = [p(0, .3, .3), p(1, 0, .1)]
     assert sensitivity(ps, W, VARS, TIERS, Counter(), NAMES, LABELS)["robust"] is True
 
