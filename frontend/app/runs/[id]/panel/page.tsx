@@ -1,23 +1,42 @@
 "use client";
 
-import { ArrowRight, Check, MessagesSquare, TriangleAlert } from "lucide-react";
+import { ArrowRight, Check, MessagesSquare, RotateCcw, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { panelLook, PersonaCard } from "@/components/PersonaCard";
 import { Notice, PageHead, RunSteps } from "@/components/run";
-import { getRun, type Brief, type Persona } from "@/lib/api";
+import { ApiError, getRun, resumeRun, type Brief, type Persona } from "@/lib/api";
 import { useRunStream } from "@/lib/useRunStream";
 
 // Mirrors the six progress steps in backend/app/pipeline.py.
 const STEPS = ["Matching segments to Qloo", "Building six panelists", "Round 1: first reactions", "Moderator picks a clash", "Round 2: the clash", "Writing the report"];
 
 export default function PanelPage() {
+  // A new key after "Try again" remounts the panel, so its stream starts over and replays the resumed run.
+  const [attempt, setAttempt] = useState(0);
+  return <Panel key={attempt} onResumed={() => setAttempt((n) => n + 1)} />;
+}
+
+function Panel({ onResumed }: { onResumed: () => void }) {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const s = useRunStream(id);
   const [brief, setBrief] = useState<Brief | null>(null);
+  const [resuming, setResuming] = useState(false);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+
+  const resume = () => {
+    setResuming(true);
+    setResumeError(null);
+    resumeRun(id)
+      .then(onResumed)
+      .catch((e) => {
+        setResuming(false);
+        setResumeError(e instanceof ApiError ? e.message : "Couldn't reach the server. Try again in a moment.");
+      });
+  };
 
   useEffect(() => {
     getRun(id)
@@ -83,12 +102,22 @@ export default function PanelPage() {
               <span className="font-semibold">The panel stopped: </span>
               {s.error}
             </p>
-            <p className="mt-1">
-              <Link href="/#brief" className="font-semibold underline">
-                Try another brief
-              </Link>{" "}
-              or pick one of the examples on the home page.
-            </p>
+            <p className="mt-1 text-sub">Everything the panel already said is saved. Try again to pick up where it stopped.</p>
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <button
+                type="button"
+                onClick={resume}
+                disabled={resuming}
+                className="sticker inline-flex h-10 items-center gap-2 rounded-full bg-sun px-5 font-semibold transition-transform hover:-translate-y-0.5 disabled:cursor-progress disabled:opacity-60"
+              >
+                <RotateCcw aria-hidden className={`size-4 ${resuming ? "motion-safe:animate-spin" : ""}`} strokeWidth={2.25} />
+                {resuming ? "Picking up…" : "Try again"}
+              </button>
+              <Link href="/#brief" className="text-sm underline">
+                or start a new brief
+              </Link>
+            </div>
+            {resumeError && <p className="mt-2 text-sm font-semibold">{resumeError}</p>}
           </Notice>
         )}
         {s.reconnecting && !s.done && !s.error && <Notice>Lost the connection to the server. Reconnecting…</Notice>}

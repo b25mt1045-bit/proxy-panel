@@ -91,6 +91,29 @@ async def test_full_run_through_the_api(api):
     assert tail.startswith("id: 6\n")
 
 
+async def test_resume_only_restarts_a_failed_run(api, db, monkeypatch):
+    out = await created(api)
+    run = out["run_id"]
+    assert (await api.post(f"/runs/{run}/resume")).json()["error"]["code"] == "bad_status"  # still confirming
+    compute = main.pipeline.report.compute
+
+    async def busy(*a, **k):
+        raise main.LLMError("Gemini 503")
+
+    monkeypatch.setattr(main.pipeline.report, "compute", busy)
+    await api.put(f"/runs/{run}/comparables", json=body(out["comparables"]))
+    await asyncio.gather(*main._tasks)
+    assert (await api.get(f"/runs/{run}")).json()["run"]["status"] == "failed"
+
+    monkeypatch.setattr(main.pipeline.report, "compute", compute)
+    r = await api.post(f"/runs/{run}/resume")
+    assert r.status_code == 202 and r.json()["status"] == "running"
+    await asyncio.gather(*main._tasks)
+    assert (await api.get(f"/runs/{run}")).json()["run"]["status"] == "done"
+    assert "event: error" not in (await api.get(f"/runs/{run}/stream")).text
+    assert (await api.post(f"/runs/{run}/resume")).status_code == 409
+
+
 async def test_unknown_run_is_404(api):
     for path in ("/runs/nope", "/runs/nope/report", "/runs/nope/stream"):
         r = await api.get(path)

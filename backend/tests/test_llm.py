@@ -51,34 +51,40 @@ def gemini(monkeypatch):
         yield router
 
 
-def reply(*parts):
-    return httpx.Response(200, json={"candidates": [{"content": {"role": "model", "parts": list(parts)}}]})
+def reply(*steps):
+    return httpx.Response(200, json={"status": "completed", "steps": list(steps)})
+
+
+def said(text):
+    return {"type": "model_output", "content": [{"type": "text", "text": text}]}
 
 
 async def test_gemini_structured_output(gemini):
-    route = gemini.post(f"{llm.GEMINI_URL}/small-m:generateContent").mock(
-        side_effect=[reply({"text": '{"n": "bad"}'}), reply({"text": '{"n": 3}'})])
+    route = gemini.post(llm.GEMINI_URL).mock(side_effect=[reply(said('{"n": "bad"}')), reply(said('{"n": 3}'))])
     assert (await llm.complete("p", "small", "sys", "u", schema=Out)).n == 3
     first = json.loads(route.calls[0].request.content)
     assert route.calls[0].request.headers["x-goog-api-key"] == "k"
-    assert first["systemInstruction"]["parts"][0]["text"] == "sys"
-    assert first["generationConfig"]["responseJsonSchema"]["properties"]["n"]["type"] == "integer"
-    assert "Reply with valid JSON only" in json.loads(route.calls[1].request.content)["contents"][0]["parts"][0]["text"]
+    assert (first["model"], first["system_instruction"], first["store"]) == ("small-m", "sys", False)
+    assert first["response_format"]["properties"]["n"]["type"] == "integer"
+    assert "Reply with valid JSON only" in json.loads(route.calls[1].request.content)["input"]
 
 
 async def test_gemini_tool_turns_round_trip(gemini):
-    route = gemini.post(f"{llm.GEMINI_URL}/big-m:generateContent").mock(return_value=reply(
-        {"functionCall": {"id": "c1", "name": "qloo_search", "args": {"query": "x"}}, "thoughtSignature": "sig"}))
+    route = gemini.post(llm.GEMINI_URL).mock(return_value=reply(
+        {"type": "thought", "signature": "sig"},
+        {"type": "function_call", "id": "c1", "name": "qloo_search", "arguments": {"query": "x"}}))
     res = await llm.complete("repair", "big", "s", [{"role": "user", "content": "go"}], tools=[{"name": "qloo_search"}])
     assert res.tool_calls[0].thought_signature == "sig"
+    assert json.loads(route.calls[0].request.content)["tools"] == [{"type": "function", "name": "qloo_search"}]
     msgs = [{"role": "user", "content": "go"},
             {"role": "assistant", "content": "", "tool_calls": [c.model_dump() for c in res.tool_calls]},
             {"role": "tool", "tool_call_id": "c1", "content": "[]"}]
     await llm.complete("repair", "big", "s", msgs, tools=[{"name": "qloo_search"}])
-    contents = json.loads(route.calls[1].request.content)["contents"]
-    assert contents[1] == {"role": "model", "parts": [
-        {"functionCall": {"name": "qloo_search", "args": {"query": "x"}, "id": "c1"}, "thoughtSignature": "sig"}]}
-    assert contents[2]["parts"][0]["functionResponse"] == {"name": "qloo_search", "id": "c1", "response": {"result": "[]"}}
+    assert json.loads(route.calls[1].request.content)["input"] == [
+        {"type": "user_input", "content": [{"type": "text", "text": "go"}]},
+        {"type": "thought", "signature": "sig"},
+        {"type": "function_call", "id": "c1", "name": "qloo_search", "arguments": {"query": "x"}},
+        {"type": "function_result", "call_id": "c1", "name": "qloo_search", "result": "[]"}]
 
 
 async def test_gemini_retries_rate_limit_once(gemini, monkeypatch):
@@ -86,10 +92,10 @@ async def test_gemini_retries_rate_limit_once(gemini, monkeypatch):
     real_sleep = asyncio.sleep
     monkeypatch.setattr(llm.asyncio, "sleep", lambda s: slept.append(s) or real_sleep(0))
     limited = httpx.Response(429, json={"error": {"details": [{"retryDelay": "7s"}]}})
-    gemini.post(f"{llm.GEMINI_URL}/small-m:generateContent").mock(side_effect=[limited, reply({"text": "hi"})])
+    gemini.post(llm.GEMINI_URL).mock(side_effect=[limited, reply(said("hi"))])
     assert await llm.complete("p", "small", "s", "u") == "hi"
     assert slept == [7]
-    gemini.post(f"{llm.GEMINI_URL}/small-m:generateContent").mock(side_effect=[limited, limited])
+    gemini.post(llm.GEMINI_URL).mock(side_effect=[limited, limited])
     with pytest.raises(llm.LLMError, match="Gemini 429"):
         await llm.complete("p", "small", "s", "u")
 
@@ -98,9 +104,9 @@ async def test_gemini_retries_network_error_once(gemini, monkeypatch):
     real_sleep = asyncio.sleep
     monkeypatch.setattr(llm.asyncio, "sleep", lambda s: real_sleep(0))
     dns = httpx.ConnectError("[Errno 11001] getaddrinfo failed")
-    gemini.post(f"{llm.GEMINI_URL}/small-m:generateContent").mock(side_effect=[dns, reply({"text": "hi"})])
+    gemini.post(llm.GEMINI_URL).mock(side_effect=[dns, reply(said("hi"))])
     assert await llm.complete("p", "small", "s", "u") == "hi"
-    gemini.post(f"{llm.GEMINI_URL}/small-m:generateContent").mock(side_effect=[dns, dns])
+    gemini.post(llm.GEMINI_URL).mock(side_effect=[dns, dns])
     with pytest.raises(llm.LLMError, match="unreachable twice"):
         await llm.complete("p", "small", "s", "u")
 

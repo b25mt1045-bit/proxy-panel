@@ -16,7 +16,8 @@ async def emit(db: Db, run_id: str, type: str, data: dict) -> dict:
     # The lock stops parallel statements racing for the same seq.
     async with _locks[run_id], db.session() as s:
         run = await s.get(Run, run_id)
-        ev = {"seq": len(run.events) + 1, "type": type, "data": data}
+        # From the last seq, not the length: a resume drops the failed attempt's error event.
+        ev = {"seq": (run.events[-1]["seq"] if run.events else 0) + 1, "type": type, "data": data}
         run.events = [*run.events, ev]  # a new list, so SQLAlchemy sees the change
         await s.commit()
     for q in _queues[run_id]:

@@ -12,7 +12,7 @@ from pydantic import BaseModel, ValidationError
 from app.config import settings
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "llm"
-GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/interactions"
 _mock_calls: Counter[str] = Counter()
 
 
@@ -24,7 +24,7 @@ class ToolCall(BaseModel):
     id: str = ""
     name: str
     args: dict = {}
-    thought_signature: str = ""  # opaque, from Gemini; echoed back by _call_part
+    thought_signature: str = ""  # opaque, from the thought step before the call; echoed back by _steps
 
 
 class ToolCallResult(BaseModel):
@@ -56,33 +56,35 @@ async def complete(prompt_name: str, model: Literal["small", "big"], system: str
 
 
 async def _provider(model, system, user, schema, tools, temperature):
-    """Gemini generateContent over REST. Free tier, so no cost goes into run_ctx["llm_cost_usd"]."""
+    """Gemini Interactions API over REST, stateless (store=false). Free tier, so no cost goes into run_ctx["llm_cost_usd"]."""
     model_id = settings.LLM_SMALL if model == "small" else settings.LLM_BIG
     if not settings.LLM_API_KEY or not model_id:
         raise LLMError("Set LLM_API_KEY, LLM_SMALL and LLM_BIG in backend/.env, or set LLM_MOCK=1.")
-    body: dict = {"systemInstruction": {"parts": [{"text": system}]}, "contents": _contents(user),
-                  "generationConfig": {"temperature": temperature}}
+    body: dict = {"model": model_id, "store": False, "system_instruction": system, "input": _steps(user),
+                  "generation_config": {"temperature": temperature}}
     if tools:
-        body["tools"] = [{"functionDeclarations": tools}]
+        body["tools"] = [{"type": "function"} | t for t in tools]
     elif schema:
-        body["generationConfig"] |= {"responseMimeType": "application/json",
-                                     "responseJsonSchema": schema.model_json_schema()}
-    data = await _post(f"{GEMINI_URL}/{model_id}:generateContent", body)
-    if not data.get("candidates"):
-        raise LLMError(f"Gemini returned no candidates: {data.get('promptFeedback')}")
-    parts = data["candidates"][0].get("content", {}).get("parts", [])
-    text = "".join(p["text"] for p in parts if "text" in p and not p.get("thought"))
+        body["response_format"] = schema.model_json_schema()
+    data = await _post(GEMINI_URL, body)
+    steps = data.get("steps") or []
+    text = "".join(c.get("text", "") for s in steps if s.get("type") == "model_output" for c in s.get("content", []))
     if not tools:
+        if not text:
+            raise LLMError(f"Gemini returned no output (status {data.get('status')})")
         return text
-    calls = [{"id": p["functionCall"].get("id", ""), "name": p["functionCall"]["name"],
-              "args": p["functionCall"].get("args", {}), "thought_signature": p.get("thoughtSignature", "")}
-             for p in parts if "functionCall" in p]
+    calls, sig = [], ""
+    for s in steps:
+        if s.get("type") == "thought":
+            sig = s.get("signature", "")
+        elif s.get("type") == "function_call":
+            calls.append({"id": s.get("id", ""), "name": s["name"], "args": s.get("arguments", {}), "thought_signature": sig})
     return {"text": text, "tool_calls": calls}
 
 
 async def _post(url: str, body: dict) -> dict:
-    """30 s timeout; one retry on a network error (timeout, DNS, reset), 5xx or 429 (waits the delay Gemini asks for)."""
-    async with httpx.AsyncClient(timeout=30) as client:
+    """120 s timeout (thinking models are slow); one retry on a network error (timeout, DNS, reset), 5xx or 429 (waits the delay Gemini asks for)."""
+    async with httpx.AsyncClient(timeout=120) as client:
         for attempt in (1, 2):
             try:
                 r = await client.post(url, json=body, headers={"x-goog-api-key": settings.LLM_API_KEY})
@@ -108,37 +110,27 @@ def _retry_delay(r: httpx.Response) -> float:
         return 10
 
 
-def _contents(user: str | list[dict]) -> list[dict]:
-    """Our message list ({"role": user|assistant|tool, ...}, see orchestrator.py) → Gemini contents.
+def _steps(user: str | list[dict]) -> str | list[dict]:
+    """Our message list ({"role": user|assistant|tool, ...}, see orchestrator.py) → Interactions input steps.
     Tool results answer the previous assistant message's calls in order."""
     if isinstance(user, str):
-        return [{"role": "user", "parts": [{"text": user}]}]
+        return user
     out: list[dict] = []
     calls: list[dict] = []
-
-    def add(role, parts):
-        if out and out[-1]["role"] == role:
-            out[-1]["parts"] += parts
-        else:
-            out.append({"role": role, "parts": parts})
-
     for m in user:
         if m["role"] == "assistant":
             calls = list(m.get("tool_calls", []))
-            add("model", ([{"text": m["content"]}] if m.get("content") else []) + [_call_part(c) for c in calls])
+            # Gemini 3 needs the thought signature before the calls sent back unchanged on the next turn.
+            sig = next((c["thought_signature"] for c in calls if c.get("thought_signature")), "")
+            out += [{"type": "thought", "signature": sig}] if sig else []
+            out += [{"type": "model_output", "content": [{"type": "text", "text": m["content"]}]}] if m.get("content") else []
+            out += [{"type": "function_call", "id": c["id"], "name": c["name"], "arguments": c.get("args", {})} for c in calls]
         elif m["role"] == "tool":
             c = calls.pop(0)
-            resp = {"name": c["name"], "response": {"result": m["content"]}} | ({"id": c["id"]} if c.get("id") else {})
-            add("user", [{"functionResponse": resp}])
+            out.append({"type": "function_result", "call_id": c["id"], "name": c["name"], "result": m["content"]})
         else:
-            add("user", [{"text": m["content"]}])
+            out.append({"type": "user_input", "content": [{"type": "text", "text": m["content"]}]})
     return out
-
-
-def _call_part(c: dict) -> dict:
-    # Gemini 3 needs each call's thoughtSignature sent back unchanged on the next turn.
-    call = {"name": c["name"], "args": c.get("args", {})} | ({"id": c["id"]} if c.get("id") else {})
-    return {"functionCall": call} | ({"thoughtSignature": c["thought_signature"]} if c.get("thought_signature") else {})
 
 
 def _mock(name: str, user: str | list[dict]):

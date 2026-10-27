@@ -184,6 +184,8 @@ export const putComparables = (id: string, comparables: ComparableIn[], variant_
     method: "PUT",
     body: JSON.stringify({ comparables, variant_weights }),
   });
+export const resumeRun = (id: string) =>
+  api<{ run_id: string; status: "running"; stream_url: string }>(`/runs/${id}/resume`, { method: "POST" });
 export const getReport = (id: string) => api<Report>(`/runs/${id}/report`);
 export const searchQloo = (q: string) =>
   api<{ results: { qloo_id: string; name: string }[] }>(`/qloo/search?q=${encodeURIComponent(q)}`);
