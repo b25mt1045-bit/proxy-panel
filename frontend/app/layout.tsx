@@ -19,7 +19,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="font-sans">
         <Header />
         <main id="top">{children}</main>
-        <footer className="border-t-2 border-text">
+        <footer className="border-t-2 border-text print:hidden">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-8 text-sm text-sub sm:px-8">
             <p>These are hypotheses about segments and objections, not a sales forecast.</p>
             <p>Built on Qloo taste data.</p>

@@ -10,10 +10,10 @@ def fence(tag: str, text: str) -> str:
 COMPARABLES_SYSTEM = f"You are a consumer-brand analyst. {DATA_RULE}"
 COMPARABLES_USER = (
     "List 6 real, currently sold brands that compete most directly with this product, as a shopper would compare "
-    "them on shelf or in an app store. Prefer well-known brands. Give each one's typical US retail price for the "
-    "closest comparable unit (same pack size / plan) in USD.\n"
-    "{brief} Category: {category}. Our price: ${price}.\n"
-    'Reply as JSON: {{"brands": [{{"name": str, "price_usd": float}}]}}'
+    "them on shelf or in an app store. Prefer well-known brands. Give each one's typical retail price in {market} for "
+    "the closest comparable unit (same pack size / plan), in local currency ({cur}).\n"
+    "{brief} Market: {market}. Category: {category}. Our price: {cur}{price}.\n"
+    'Reply as JSON: {{"brands": [{{"name": str, "price": float}}]}}'
 )
 
 SEEDS_SYSTEM = f"You are an audience researcher who knows consumer taste data. {DATA_RULE}"
@@ -45,7 +45,7 @@ PRICE_TIERS_USER = (
 PERSONAS_SYSTEM = "You write short, specific focus-group panelist profiles. Reply with JSON only."
 PERSONAS_USER = (
     "Write a first name and a one-line bio (at most 20 words) for each of these {n} panelists. Each bio must "
-    "reflect their tastes below and mention their segment; make them clearly different people.\n{panelists}\n"
+    "reflect their tastes below and mention their segment; make them clearly different people who live in {market}.\n{panelists}\n"
     'Reply as JSON: {{"personas": [{{"id": "P1", "name": str, "bio": str}}]}}'
 )
 
@@ -54,12 +54,14 @@ PANELIST_SYSTEM = (
     "Your measured tastes (cite by ID):\n{receipts}\n"
     "Your stance on this product is {stance_label} (score {scaled:.2f}). Your price band is tier {lo:.1f} to "
     "{hi:.1f} (1 = budget, 4 = luxury); the product is tier {tier}.\n"
-    "Rules: every claim cites at least one ID in [brackets], e.g. [R2] or [C1]. Do not change your stance. "
-    "Talk about price in words (cheap, fair, pricey); the only dollar amounts you may quote are the product's "
-    "own prices, written as digits like $3.29, never in words. Do not invent tastes that are not listed. " + DATA_RULE
+    "Rules: every claim cites at least one ID in [brackets], e.g. [R2] or [C1]. An ID is a footnote, not a word: put "
+    "it right after the name it backs (\"I like CeraVe [C1]\"), and the sentence must read correctly without it. "
+    "Do not change your stance. "
+    "Talk about price in words (cheap, fair, pricey); the only money amounts you may quote are the product's "
+    "own prices, written as digits with {cur} like {cur}3.29, never in words. Do not invent tastes that are not listed. " + DATA_RULE
 )
 PANELIST_R1_USER = (
-    "React to this product in 60-100 words. {brief}\nVariants: {variants}\n{variant_ask}\n"
+    "React to this product, on sale in {market}, in 60-100 words. {brief}\nVariants: {variants}\n{variant_ask}\n"
     'Reply as JSON: {{"text": str, "preferred_variant": "A"|"B"|null}}'
 )
 PANELIST_R2_USER = (

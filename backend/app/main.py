@@ -129,7 +129,7 @@ class ComparableIn(BaseModel):
     qloo_id: str = Field(min_length=1)
     name: str = Field(min_length=1, max_length=100)
     weight: float = Field(ge=0, le=1)
-    price: float = Field(gt=0, le=10000)
+    price: float = Field(gt=0, le=1_000_000)
 
 
 class ComparablesIn(BaseModel):

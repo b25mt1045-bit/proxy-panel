@@ -145,10 +145,27 @@ export function ReceiptChip({ r }: { r: Receipt }) {
 
 const CITE = /\[([RC]\d+(?:\s*,\s*[RC]\d+)*)\]/g; // same pattern as backend/app/validator.py; Gemini groups them: [R1, R4]
 
+/** "like CeraVe" before a CeraVe chip → "like ": the model names a taste, then cites it, and the chip already shows the name.
+ *  Also matches a shortened name ("Paula's Choice" for "Paula's Choice Skin Care"). */
+function dropTrailingName(before: string, name: string): string {
+  const t = before.trimEnd();
+  const words = name.split(/\s+/);
+  for (let k = words.length; k > 0; k--) {
+    const n = words.slice(0, k).join(" ");
+    const rest = t.slice(0, t.length - n.length);
+    if (t.toLowerCase().endsWith(n.toLowerCase()) && /(^|[\s("'“])$/.test(rest)) return rest;
+  }
+  return before;
+}
+
 /** Statement text with each [R1] / [R1, C2] citation swapped for receipt chips. */
 export function CitedText({ text, receipts }: { text: string; receipts: Receipt[] }) {
   const byLabel = new Map(receipts.map((r) => [r.label, r]));
   const parts = text.split(CITE); // odd indexes are the captured label groups
+  for (let i = 1; i < parts.length; i += 2) {
+    const r = byLabel.get(parts[i].split(",")[0].trim());
+    if (r) parts[i - 1] = dropTrailingName(parts[i - 1], r.entity_name);
+  }
   return (
     <>
       {parts.map((p, i) =>

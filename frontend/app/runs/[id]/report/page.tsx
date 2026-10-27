@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, Link2, X } from "lucide-react";
+import { Check, Copy, Download, Link2, X } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -34,13 +34,41 @@ export default function ReportPage() {
       });
   }, [id, router]);
 
+  // Printing (or "Download PDF") opens every collapsed section so the PDF holds the whole report.
+  useEffect(() => {
+    let opened: HTMLDetailsElement[] = [];
+    const before = () => {
+      opened = [...document.querySelectorAll<HTMLDetailsElement>("details:not([open])")];
+      opened.forEach((d) => (d.open = true));
+    };
+    const after = () => opened.forEach((d) => (d.open = false));
+    window.addEventListener("beforeprint", before);
+    window.addEventListener("afterprint", after);
+    return () => {
+      window.removeEventListener("beforeprint", before);
+      window.removeEventListener("afterprint", after);
+    };
+  }, []);
+
   return (
-    <div className="mx-auto max-w-6xl px-5 pb-24 pt-10 sm:px-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="mx-auto max-w-6xl px-5 pb-24 pt-10 sm:px-8 print:max-w-none print:p-0">
+      <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
         <RunSteps current={3} />
-        {rep && <CopyButton text={() => window.location.href} idle="Copy share link" done="Link copied" icon={<Link2 aria-hidden className="size-4" />} />}
+        {rep && (
+          <div className="flex flex-wrap gap-2">
+            <CopyButton text={() => window.location.href} idle="Copy share link" done="Link copied" icon={<Link2 aria-hidden className="size-4" />} />
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full border-2 border-text bg-raise px-4 py-2 text-sm font-semibold hover:bg-sun"
+            >
+              <Download aria-hidden className="size-4" />
+              Download PDF
+            </button>
+          </div>
+        )}
       </div>
-      <div className="mt-8">
+      <div className="mt-8 print:mt-0">
         {error ? (
           <Notice tone="error">
             {error}{" "}
@@ -80,7 +108,7 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
   };
 
   return (
-    <div className="grid gap-14">
+    <div className="grid gap-14 print:gap-10">
       <section aria-labelledby="verdict" className="sticker rounded-3xl bg-sun p-6 sm:p-10">
         <p className="font-hand text-3xl">the verdict</p>
         <h1 id="verdict" className="mt-1 max-w-[24ch] font-serif text-[clamp(2rem,5vw,3.4rem)] font-bold leading-[1.05] tracking-[-0.02em]">
@@ -104,7 +132,7 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
             <h2 id="panel-strip" className="font-serif text-2xl font-bold">
               Your panel
             </h2>
-            <p className="text-sm text-sub">Tap anyone to see who they are and what they said.</p>
+            <p className="text-sm text-sub print:hidden">Tap anyone to see who they are and what they said.</p>
           </div>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {look.ordered.map((p) => (
@@ -327,9 +355,12 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
         <p>
           Built from {g.qloo_calls + g.qloo_cache_hits} lookups of Qloo taste data: what people like each panelist buy, watch and listen to, compared with
           people in general.{" "}
-          <Link href={`/runs/${id}/panel`} className="font-semibold text-text underline hover:text-pop">
+          <Link href={`/runs/${id}/panel`} className="font-semibold text-text underline hover:text-pop print:hidden">
             Replay the debate
           </Link>
+        </p>
+        <p className="hidden print:block">
+          Full interactive report, with each panelist&apos;s answers: <span className="font-semibold text-text">{window.location.href}</span>
         </p>
         {g.warnings.length > 0 && (
           <ul className="grid gap-1">
@@ -514,7 +545,9 @@ function Interview({ iv }: { iv: Report["interview"] }) {
           <h3 className="text-xs font-bold uppercase tracking-wide">Who to recruit</h3>
           <p className="mt-1 leading-relaxed">{iv.recruit}</p>
         </div>
-        <CopyButton text={() => text} idle="Copy script" done="Copied" icon={<Copy aria-hidden className="size-4" />} />
+        <span className="print:hidden">
+          <CopyButton text={() => text} idle="Copy script" done="Copied" icon={<Copy aria-hidden className="size-4" />} />
+        </span>
       </div>
       {iv.markers.length > 0 && (
         <p className="mt-4 text-sm">

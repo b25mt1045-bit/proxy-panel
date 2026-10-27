@@ -2,7 +2,7 @@ import { Lockup } from "@/components/Mark";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b-2 border-text bg-bg">
+    <header className="sticky top-0 z-40 border-b-2 border-text bg-bg print:hidden">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
         <a href="/" aria-label="Proxy Panel home">
           <Lockup />

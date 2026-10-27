@@ -75,3 +75,22 @@
     text-underline-offset: 4px;
   }
 }
+
+/* Print, and the report's "Download PDF": keep the sticker fills and don't split a card across pages. */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  html {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  li,
+  blockquote,
+  .sticker {
+    break-inside: avoid;
+  }
+  h2 {
+    break-after: avoid;
+  }
+}

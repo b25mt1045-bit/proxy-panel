@@ -38,7 +38,7 @@ def fixtures(tmp_path, monkeypatch):
 
 
 async def test_unresolved_names_are_dropped(fixtures):
-    fixtures("comparables", {"brands": [{"name": n, "price_usd": 2.0} for n in ["A", "B", "C", "Ghost", "A"]]})
+    fixtures("comparables", {"brands": [{"name": n, "price": 2.0} for n in ["A", "B", "C", "Ghost", "A"]]})
     comps, dropped = await propose(FakeQloo(["A", "B", "C"]), BRIEF)
     assert [c.name for c in comps] == ["A", "B", "C"]  # duplicate A removed
     assert dropped == ["Ghost"]
@@ -46,7 +46,7 @@ async def test_unresolved_names_are_dropped(fixtures):
 
 
 async def test_too_few_calls_repair_and_drops_invented_ids(fixtures):
-    fixtures("comparables", {"brands": [{"name": n, "price_usd": 2.0} for n in ["A", "Ghost1", "Ghost2"]]})
+    fixtures("comparables", {"brands": [{"name": n, "price": 2.0} for n in ["A", "Ghost1", "Ghost2"]]})
     fixtures("repair", [
         {"tool_calls": [{"id": "t1", "name": "qloo_search", "args": {"query": "soda", "type": "brand"}}]},
         {"tool_calls": [{"id": "t2", "name": "submit_names", "args": {"qloo_ids": ["id-B", "id-C", "id-INVENTED"]}}]},

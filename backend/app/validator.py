@@ -11,7 +11,7 @@ from app.prompts import SENTIMENT_SYSTEM, SENTIMENT_USER
 from app.scoring import concept_tier
 
 CITE = re.compile(r"\[([RC]\d+(?:\s*,\s*[RC]\d+)*)\]")  # Gemini often groups them: [R1, R4]
-DOLLARS = re.compile(r"\$\s?(\d+(?:\.\d{1,2})?)")
+DOLLARS = re.compile(r"[$₹£]\s?(\d[\d,]*(?:\.\d{1,2})?)")  # any market's currency; ₹1,299 has commas
 # "three dollars", "twenty-nine bucks": hides an amount from the DOLLARS check, so it must be written as digits.
 _NUM = r"(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|hundred)"
 PRICE_WORDS = re.compile(rf"\b{_NUM}(?:[\s-]+{_NUM})*[\s-]+(?:dollars?|bucks)\b(?!-)", re.IGNORECASE)
@@ -29,7 +29,7 @@ def check_static(text: str, labels: set[str], band: tuple[float, float], compara
         errs.append("no_receipt: cite at least one ID like [R1]")
     if bad := [c for c in ids if c not in labels]:
         errs.append(f"foreign_receipt: {', '.join(bad)} are not your IDs")
-    for amt in DOLLARS.findall(text):
+    for amt in (a.replace(",", "") for a in DOLLARS.findall(text)):
         if float(amt) in own_prices:  # quoting the product's or a competitor's real price is fine
             continue
         t = concept_tier(float(amt), comparable_prices)

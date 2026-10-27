@@ -1,16 +1,16 @@
 {
   "cases": [
     {"if_contains": "prebiotic sparkling soda", "response": {"brands": [
-      {"name": "Olipop", "price_usd": 2.99}, {"name": "Poppi", "price_usd": 2.49},
-      {"name": "Culture Pop", "price_usd": 2.79}, {"name": "Health-Ade SunSip", "price_usd": 2.99},
-      {"name": "Recess", "price_usd": 3.49}, {"name": "Spindrift", "price_usd": 1.25}]}},
+      {"name": "Olipop", "price": 2.99}, {"name": "Poppi", "price": 2.49},
+      {"name": "Culture Pop", "price": 2.79}, {"name": "Health-Ade SunSip", "price": 2.99},
+      {"name": "Recess", "price": 3.49}, {"name": "Spindrift", "price": 1.25}]}},
     {"if_contains": "refillable aluminium deodorant", "response": {"brands": [
-      {"name": "Native", "price_usd": 13.0}, {"name": "Dr. Squatch", "price_usd": 12.0},
-      {"name": "Myro", "price_usd": 15.0}, {"name": "Lume", "price_usd": 14.99},
-      {"name": "Schmidt's", "price_usd": 9.99}, {"name": "Each & Every", "price_usd": 12.99}]}},
+      {"name": "Native", "price": 13.0}, {"name": "Dr. Squatch", "price": 12.0},
+      {"name": "Myro", "price": 15.0}, {"name": "Lume", "price": 14.99},
+      {"name": "Schmidt's", "price": 9.99}, {"name": "Each & Every", "price": 12.99}]}},
     {"if_contains": "habit-tracking app", "response": {"brands": [
-      {"name": "Headspace", "price_usd": 12.99}, {"name": "Calm", "price_usd": 14.99},
-      {"name": "Duolingo", "price_usd": 12.99}, {"name": "Noom", "price_usd": 70.0},
-      {"name": "Finch", "price_usd": 9.99}, {"name": "Fabulous", "price_usd": 9.99}]}}
+      {"name": "Headspace", "price": 12.99}, {"name": "Calm", "price": 14.99},
+      {"name": "Duolingo", "price": 12.99}, {"name": "Noom", "price": 70.0},
+      {"name": "Finch", "price": 9.99}, {"name": "Fabulous", "price": 9.99}]}}
   ]
 }

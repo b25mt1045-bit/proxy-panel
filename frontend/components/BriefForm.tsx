@@ -8,10 +8,12 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   ApiError,
   createRun,
+  CURRENCY,
   getExamples,
   getPresets,
   type Brief,
   type Category,
+  type Market,
   type Example,
   type Preset,
 } from "@/lib/api";
@@ -23,17 +25,23 @@ const CATEGORIES: { value: Category; label: string }[] = [
   { value: "app", label: "Consumer app" },
   { value: "other", label: "Other" },
 ];
+const MARKETS: { value: Market; label: string }[] = [
+  { value: "US", label: "United States" },
+  { value: "IN", label: "India" },
+  { value: "UK", label: "United Kingdom" },
+];
 // Same limits as backend/app/models.py; the server stays the authority.
-const DESC_MIN = 20, DESC_MAX = 1000, NAME_MAX = 60, POS_MAX = 300, SEG_MIN = 3, SEG_MAX = 200, PRICE_MAX = 10000;
+const DESC_MIN = 20, DESC_MAX = 1000, NAME_MAX = 60, POS_MAX = 300, SEG_MIN = 3, SEG_MAX = 200, PRICE_MAX = 1_000_000;
 
 type VariantRow = { key: "A" | "B"; name: string; positioning: string; price: string };
 type SegmentRow = { mode: "preset" | "text"; preset_id: string; text: string };
-type Form = { description: string; category: Category | ""; price: string; variants: VariantRow[]; segments: SegmentRow[] };
+type Form = { description: string; category: Category | ""; market: Market; price: string; variants: VariantRow[]; segments: SegmentRow[] };
 type Errors = Record<string, string>; // keyed by the backend's field path: "description", "variants.0.name", "segments.1"
 
 const EMPTY: Form = {
   description: "",
   category: "",
+  market: "US",
   price: "",
   variants: [{ key: "A", name: "", positioning: "", price: "" }],
   segments: [{ mode: "preset", preset_id: "", text: "" }],
@@ -42,11 +50,11 @@ const EMPTY: Form = {
 const fieldId = (path: string) => `f-${path.replaceAll(".", "-")}`;
 
 function priceError(raw: string, optional: boolean): string | null {
-  if (!raw.trim()) return optional ? null : "Enter a price in USD.";
+  if (!raw.trim()) return optional ? null : "Enter a price.";
   const n = Number(raw);
   if (!Number.isFinite(n)) return "Enter a number, like 3.29.";
-  if (n <= 0) return "Enter a price above $0.";
-  if (n > PRICE_MAX) return "Keep the price at $10,000 or less.";
+  if (n <= 0) return "Enter a price above 0.";
+  if (n > PRICE_MAX) return "Keep the price at 1,000,000 or less.";
   return null;
 }
 
@@ -77,6 +85,7 @@ function toBrief(f: Form): Brief {
   return {
     description: f.description.trim(),
     category: f.category as Category,
+    market: f.market,
     price: Number(f.price),
     variants: f.variants.map((v) => ({
       key: v.key,
@@ -92,6 +101,7 @@ function fromBrief(b: Brief): Form {
   return {
     description: b.description,
     category: b.category,
+    market: b.market ?? "US",
     price: String(b.price),
     variants: b.variants.map((v) => ({
       key: v.key,
@@ -234,8 +244,12 @@ export function BriefForm() {
             </Field>
           </Cue>
 
-          <Cue n={2} title="Category and price" hint="Category sets which brands it's compared with. Price is USD, per unit or month.">
-            <div className="grid gap-4 sm:grid-cols-2">
+          <Cue
+            n={2}
+            title="Category, market and price"
+            hint="Category sets which brands it's compared with. Market sets whose taste data builds the panel and the currency. Price is per unit or month."
+          >
+            <div className="grid gap-4 sm:grid-cols-3">
               <Field path="category" errors={errors}>
                 <label htmlFor={fieldId("category")} className="mb-2 block text-xs text-sub">
                   Category
@@ -256,11 +270,24 @@ export function BriefForm() {
                   ))}
                 </SelectBox>
               </Field>
+              <Field path="market" errors={errors}>
+                <label htmlFor={fieldId("market")} className="mb-2 block text-xs text-sub">
+                  Market
+                </label>
+                <SelectBox id={fieldId("market")} value={form.market} invalid={!!errors.market} onChange={(v) => update({ market: v as Market }, ["market"])}>
+                  {MARKETS.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </SelectBox>
+              </Field>
               <Field path="price" errors={errors}>
                 <label htmlFor={fieldId("price")} className="mb-2 block text-xs text-sub">
                   Price
                 </label>
                 <PriceInput
+                  symbol={CURRENCY[form.market]}
                   id={fieldId("price")}
                   value={form.price}
                   invalid={!!errors.price}
@@ -330,9 +357,10 @@ export function BriefForm() {
                       </Field>
                       <Field path={`variants.${i}.price`} errors={errors}>
                         <label htmlFor={fieldId(`variants.${i}.price`)} className="sr-only">
-                          Variant {v.key} price in USD (optional)
+                          Variant {v.key} price (optional)
                         </label>
                         <PriceInput
+                  symbol={CURRENCY[form.market]}
                           id={fieldId(`variants.${i}.price`)}
                           value={v.price}
                           invalid={!!errors[`variants.${i}.price`]}
@@ -661,17 +689,19 @@ function PriceInput({
   invalid,
   onChange,
   placeholder,
+  symbol,
 }: {
   id: string;
   value: string;
   invalid: boolean;
   onChange: (v: string) => void;
   placeholder: string;
+  symbol: string;
 }) {
   return (
     <div className="relative">
       <span aria-hidden className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sub">
-        $
+        {symbol}
       </span>
       <input
         id={id}
