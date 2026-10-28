@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from app import llm, scoring
 from app.config import AGE_BUCKETS, settings
 from app.db import Db
-from app.models import MARKETS, Comparable
+from app.models import Comparable
 from app.prompts import PERSONAS_SYSTEM, PERSONAS_USER, PRICE_TIERS_SYSTEM, PRICE_TIERS_USER
 from app.qloo import Entity, Qloo, QlooPartial, norm, run_ctx
 from app.segments import MEDIA_TYPES, SegmentSignals, baseline, segment_media
@@ -204,8 +204,7 @@ async def _name(built: list[BuiltPersona]):
     lines = [f"P{i + 1} — segment: {p.segment_label}; age: {p.age or 'unknown'}; tastes: "
              f"{', '.join(r.entity_name for r in p.receipts if r.label.startswith('R'))}" for i, p in enumerate(built)]
     res = await llm.complete("personas", "big", PERSONAS_SYSTEM,
-                             PERSONAS_USER.format(n=len(built), panelists="\n".join(lines),
-                                                 market=MARKETS[(run_ctx.get() or {}).get("market", "US")]),
+                             PERSONAS_USER.format(n=len(built), panelists="\n".join(lines)),
                              schema=PersonasOut, temperature=0.9)
     names = {nb.id: nb for nb in res.personas}
     for i, p in enumerate(built):

@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app import llm, validator
-from app.models import CURRENCY, MARKETS, Brief
+from app.models import Brief
 from app.personas import BuiltPersona
 from app.prompts import (
     MODERATOR_SYSTEM,
@@ -52,14 +52,14 @@ class Context(BaseModel):
         return {v.price or self.brief.price for v in self.brief.variants} | set(self.comparable_prices)
 
 
-def system(p: BuiltPersona, tier: int, cur: str = "$") -> str:
+def system(p: BuiltPersona, tier: int) -> str:
     receipts = "\n".join(f"[{r.label}] {r.entity_name} ({r.entity_type}, lift {r.lift:+.2f})" for r in p.receipts)
     return PANELIST_SYSTEM.format(name=p.name, bio=p.bio, receipts=receipts, stance_label=p.stance_label,
-                                  scaled=p.stance_scaled, lo=p.price_lo, hi=p.price_hi, tier=tier, cur=cur)
+                                  scaled=p.stance_scaled, lo=p.price_lo, hi=p.price_hi, tier=tier)
 
 
 async def _say(p: BuiltPersona, prompt: str, user: str, ctx: Context, i: int) -> Said:
-    said = await llm.complete(prompt, "small", system(p, ctx.tier, CURRENCY[ctx.brief.market]), user, schema=Said, temperature=0.7 + 0.05 * i)
+    said = await llm.complete(prompt, "small", system(p, ctx.tier), user, schema=Said, temperature=0.7 + 0.05 * i)
     if len(ctx.brief.variants) == 1:
         said.preferred_variant = None
     return said
@@ -97,16 +97,16 @@ async def run_round(prompt: str, rnd: int, ps: list[BuiltPersona], users: list[s
 
 
 def _money(x: float) -> str:
-    return f"{x:.2f}".removesuffix(".00")  # 28.0 → "28", 3.5 → "3.50", so panelists don't write "£28.0"
+    return f"{x:.2f}".removesuffix(".00")  # 28.0 → "28", 3.5 → "3.50", so panelists don't write "$28.0"
 
 
 def round1_user(ctx: Context) -> str:
     b = ctx.brief
-    variants = "; ".join(f"{v.key}: {v.name}, {v.positioning or 'no positioning given'}, {CURRENCY[b.market]}{_money(v.price or b.price)}"
+    variants = "; ".join(f"{v.key}: {v.name}, {v.positioning or 'no positioning given'}, ${_money(v.price or b.price)}"
                          for v in b.variants)
     ask = "Say which variant you prefer and why." if len(b.variants) > 1 else "Don't mention variants."
     return PANELIST_R1_USER.format(brief=fence("brief", b.description), variants=fence("variants", variants),
-                                   variant_ask=ask, market=MARKETS[b.market])
+                                   variant_ask=ask)
 
 
 def pick_pair(ps: list[BuiltPersona]) -> tuple[BuiltPersona, BuiltPersona]:

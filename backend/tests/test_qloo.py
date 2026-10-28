@@ -101,16 +101,6 @@ async def test_insights_params_and_mapping(db):
     assert p["signal.location.query"] == "India" and p["filter.results.entities"] == "E2" and p["take"] == "1"
 
 
-@respx.mock
-async def test_insights_filters_by_the_runs_market(db, ctx):
-    route = respx.get(f"{BASE}/v2/insights").mock(return_value=httpx.Response(200, json={"results": {"entities": []}}))
-    await client(db).insights("urn:entity:brand", ["S1"])
-    ctx["market"] = "IN"
-    await client(db).insights("urn:entity:brand", ["S1"])
-    assert "signal.location.query" not in route.calls[0].request.url.params  # US: no filter
-    assert route.calls[1].request.url.params["signal.location.query"] == "India"
-
-
 async def test_mock_reads_fixture_or_fails_loudly(db, tmp_path):
     (tmp_path / f"{cache_key('/search', SEARCH)}.json").write_text(json.dumps(HIT))
     q = client(db, mock=True, fixtures=tmp_path)

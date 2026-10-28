@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { Loading, Notice, PageHead, RunSteps } from "@/components/run";
-import { ApiError, CURRENCY, getPresets, getRun, putComparables, searchQloo, type RunView } from "@/lib/api";
+import { ApiError, getPresets, getRun, putComparables, searchQloo, type RunView } from "@/lib/api";
 
 // Same limits as PUT /runs/{id}/comparables; the server stays the authority.
 const MIN = 3, MAX = 6;
@@ -17,7 +17,7 @@ const closeness = (w: number) => (w === 0 ? "ignored" : w <= 0.3 ? "a little lik
 
 function priceOk(raw: string) {
   const n = Number(raw);
-  return raw.trim() !== "" && Number.isFinite(n) && n > 0 && n <= 1_000_000;
+  return raw.trim() !== "" && Number.isFinite(n) && n > 0 && n <= 10000;
 }
 
 export default function ConfirmPage() {
@@ -124,7 +124,6 @@ export default function ConfirmPage() {
                   splitB={hasB && splitB}
                   bName={hasB ? brief.variants[1].name : ""}
                   aName={brief.variants[0].name}
-                  cur={CURRENCY[brief.market ?? "US"]}
                   onChange={(patch) => setRow(i, patch)}
                   onRemove={() => setRows((rs) => rs.filter((_, j) => j !== i))}
                 />
@@ -164,7 +163,7 @@ export default function ConfirmPage() {
               {brief.variants.map((v) => (
                 <div key={v.key} className="flex justify-between gap-3">
                   <dt className="truncate text-sub">{v.name}</dt>
-                  <dd className="font-semibold tabular-nums">{CURRENCY[brief.market ?? "US"]}{(v.price ?? brief.price).toFixed(2)}</dd>
+                  <dd className="font-semibold tabular-nums">${(v.price ?? brief.price).toFixed(2)}</dd>
                 </div>
               ))}
             </dl>
@@ -232,7 +231,6 @@ function BrandRow({
   splitB,
   aName,
   bName,
-  cur,
   onChange,
   onRemove,
 }: {
@@ -240,7 +238,6 @@ function BrandRow({
   splitB: boolean;
   aName: string;
   bName: string;
-  cur: string;
   onChange: (p: Partial<Row>) => void;
   onRemove: () => void;
 }) {
@@ -249,7 +246,7 @@ function BrandRow({
   const priceErr =
     row.price.trim() === "" ? "Needed to place your price."
     : !Number.isFinite(n) ? "Enter a number, like 2.99."
-    : !priceOk(row.price) ? "Enter a price above 0, up to 1,000,000."
+    : !priceOk(row.price) ? "Enter a price from $0.01 to $10,000."
     : null;
   return (
     <li className="rounded-2xl border-2 border-text bg-bg p-4">
@@ -271,11 +268,11 @@ function BrandRow({
         </div>
         <div>
           <label htmlFor={`${id}-p`} className="block text-xs text-sub">
-            Typical price
+            Typical price (USD)
           </label>
           <div className="relative mt-1.5">
             <span aria-hidden className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sub">
-              {cur}
+              $
             </span>
             <input
               id={`${id}-p`}

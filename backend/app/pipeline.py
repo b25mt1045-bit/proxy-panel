@@ -27,8 +27,7 @@ async def run(db: Db, q: Qloo, run_id: str):
         row = await s.get(Run, run_id)
     # Counters carry over, so a resumed run adds to what the failed attempt already spent.
     ctx = {"qloo_calls": row.qloo_calls or 0, "qloo_cache_hits": row.qloo_cache_hits or 0,
-           "llm_cost_usd": row.llm_cost_usd or 0.0, "warnings": list(row.warnings or []),
-           "market": row.brief.get("market", "US")}  # read by Qloo.insights and the persona prompt
+           "llm_cost_usd": row.llm_cost_usd or 0.0, "warnings": list(row.warnings or [])}
     token = run_ctx.set(ctx)
     try:
         await _run(db, q, run_id, ctx)

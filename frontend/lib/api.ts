@@ -17,16 +17,13 @@ export interface Segment {
   text?: string | null;
 }
 
-export type Market = "US" | "IN" | "UK";
-export const CURRENCY: Record<Market, string> = { US: "$", IN: "₹", UK: "£" }; // mirrors backend/app/models.py
-
 export interface Brief {
   description: string;
   category: Category;
   price: number;
   variants: Variant[];
   segments: Segment[];
-  market?: Market;
+  market?: "US";
 }
 
 export interface Comparable {

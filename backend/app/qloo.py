@@ -12,7 +12,6 @@ import httpx
 from pydantic import BaseModel
 
 from app.db import Db
-from app.models import MARKETS
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "qloo"
 SPACING_S = 0.22
@@ -89,9 +88,7 @@ class Qloo:
         params = {"filter.type": filter_type, "signal.interests.entities": ",".join(entity_ids), "take": take}
         for k, v in (demographics or {}).items():
             params[f"signal.demographics.{k}"] = v
-        # shortcut: US runs send no location, so the recorded US fixtures stay valid; filter US too if results look global.
-        market = (run_ctx.get() or {}).get("market", "US")
-        if location := location or (MARKETS[market] if market != "US" else None):
+        if location:
             params["signal.location.query"] = location
         if result_ids:
             params["filter.results.entities"] = ",".join(sorted(result_ids))  # sorted for stable cache keys
