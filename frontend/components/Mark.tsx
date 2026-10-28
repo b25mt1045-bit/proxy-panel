@@ -27,7 +27,7 @@ export function Lockup({ className = "" }: { className?: string }) {
   return (
     <span className={`flex items-center gap-2.5 ${className}`}>
       <Mark className="size-8" />
-      <span className="font-serif text-xl font-bold tracking-[-0.01em]">Proxy Panel</span>
+      <span className="font-serif text-xl tracking-[-0.01em]">Proxy Panel</span>
     </span>
   );
 }

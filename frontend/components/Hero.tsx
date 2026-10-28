@@ -1,76 +1,74 @@
-import { ArrowRight } from "lucide-react";
+import { HeroDemo } from "@/components/HeroDemo";
+import { HeroInput } from "@/components/HeroInput";
+import { RotatingWord } from "@/components/RotatingWord";
 
-type Stance = "enthusiast" | "conditional" | "skeptic";
-const STANCE: Record<Stance, { label: string; cls: string }> = {
-  enthusiast: { label: "Enthusiast", cls: "text-enthusiast" },
-  conditional: { label: "On the fence", cls: "text-conditional" },
-  skeptic: { label: "Skeptic", cls: "text-skeptic" },
-};
+const STAGGER = 70; // ms between headline words
+const rise = (i: number) => ({ animationDelay: `${i * STAGGER}ms` });
 
-// Illustration only: shows the shape of a panel, not real output.
-const PANEL: { name: string; who: string; stance: Stance; says: string; bg: string; tilt: string }[] = [
-  { name: "Maya", who: "Wellness runner", stance: "enthusiast", says: "I'd swap my kombucha for this.", bg: "bg-mint", tilt: "-rotate-2" },
-  { name: "Dev", who: "Office snacker", stance: "conditional", says: "Cute can. $3.29 though?", bg: "bg-sun", tilt: "rotate-2" },
-  { name: "Ruth", who: "Budget parent", stance: "skeptic", says: "My kids won't drink 'adaptogens'.", bg: "bg-peach", tilt: "-rotate-1" },
-  { name: "Leo", who: "Gym regular", stance: "enthusiast", says: "Low sugar? I'm in.", bg: "bg-sky", tilt: "rotate-1" },
-  { name: "Ana", who: "Foodie", stance: "conditional", says: "Show me the flavours first.", bg: "bg-lilac", tilt: "-rotate-2" },
-  { name: "Sam", who: "Soda loyalist", stance: "skeptic", says: "Coke already does this job.", bg: "bg-tomato", tilt: "rotate-2" },
+// The kind of taste signals each panelist is built from (illustrative names across Qloo's entity types).
+const SIGNALS = [
+  "Olipop", "Peloton", "Taylor Swift", "The Bear", "Glossier", "Trader Joe's", "Huberman Lab", "Lululemon",
+  "Bon Appétit", "Patagonia", "Succession", "Liquid Death", "Strava", "Erewhon", "Dua Lipa", "Allbirds",
 ];
 
 export function Hero() {
   return (
-    <section className="mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-14 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:pt-20">
-      <div>
-        <p className="font-hand text-3xl text-pop">Hello! 👋</p>
-        <h1 className="mt-2 font-serif text-[clamp(2.6rem,6vw,4.4rem)] font-bold leading-[1.02] tracking-[-0.02em]">
-          Test your product on six shoppers{" "}
-          <span className="italic underline decoration-sun decoration-[0.18em] underline-offset-[0.12em]">before</span> you launch.
+    <section className="relative isolate overflow-hidden pt-16 sm:pt-24">
+      <div aria-hidden className="drift absolute -right-48 -top-48 -z-10 size-[44rem] rounded-full bg-lilac blur-3xl" />
+      <div aria-hidden className="drift absolute -left-56 top-64 -z-10 size-[36rem] rounded-full bg-mint/80 blur-3xl [animation-delay:-7s]" />
+      <div aria-hidden className="drift absolute right-1/4 top-[38rem] -z-10 size-[28rem] rounded-full bg-peach/70 blur-3xl [animation-delay:-3s]" />
+
+      <div className="mx-auto max-w-6xl px-5 text-center sm:px-8">
+        <h1 className="mx-auto max-w-6xl font-serif text-[clamp(2.6rem,7.4vw,5.6rem)] leading-[0.92] tracking-[-0.025em]">
+          <span className="inline-block motion-safe:animate-rise" style={rise(0)}>
+            Hear&nbsp;
+          </span>
+          <span className="inline-block motion-safe:animate-rise" style={rise(1)}>
+            six&nbsp;
+          </span>
+          <span className="inline-block motion-safe:animate-rise" style={rise(2)}>
+            <RotatingWord words={["shoppers", "skeptics", "parents", "runners", "foodies"]} className="text-pop" />
+          </span>
+          <br />
+          {"argue about your product".split(" ").map((w, i) => (
+            <span key={i} className="inline-block motion-safe:animate-rise" style={rise(i + 3)}>
+              {w}&nbsp;
+            </span>
+          ))}
         </h1>
-        <p className="mt-6 max-w-[48ch] text-lg leading-relaxed text-sub">
-          Describe your product. Six panelists, built from real Qloo taste data, argue about it. You get a short report: who to
-          sell to first, what puts people off, and what they&apos;d pay.
+        <p className="mx-auto mt-7 max-w-[46ch] text-lg leading-relaxed text-sub motion-safe:animate-rise [animation-delay:500ms]">
+          Six panelists built from <span className="shine font-medium">real Qloo taste data</span> debate your idea, live. You get
+          who to sell to first, what puts people off, and what they&apos;d pay.
         </p>
-        <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4">
-          <a
-            href="#brief"
-            className="sticker group inline-flex h-14 items-center gap-2 rounded-full bg-sun px-7 text-base font-semibold transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
-          >
-            Start your brief
-            <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2.25} />
-          </a>
-          <a href="#how" className="font-medium underline decoration-2 hover:text-pop">
-            How does it work?
-          </a>
+
+        <div className="mt-9 motion-safe:animate-rise [animation-delay:650ms]">
+          <HeroInput />
+          <p className="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm text-faint">
+            <span>6 panelists</span>
+            <span aria-hidden>·</span>
+            <span>about 90 seconds</span>
+            <span aria-hidden>·</span>
+            <span>free to try</span>
+          </p>
         </div>
-        <p className="mt-5 font-hand text-2xl text-sub">takes about 2 minutes, free to try</p>
+
+        <div className="mt-14 motion-safe:animate-rise [animation-delay:850ms]">
+          <HeroDemo />
+        </div>
       </div>
 
-      <figure>
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          {PANEL.map((p, i) => (
-            <li
-              key={p.name}
-              className={`sticker rounded-3xl ${p.bg} ${p.tilt} p-4 transition-transform duration-300 hover:-translate-y-1 hover:rotate-0 motion-safe:animate-float`}
-              style={{ animationDelay: `${i * -0.8}s` }}
-            >
-              <div className="flex items-center gap-2.5">
-                <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-full border-2 border-text bg-raise font-serif font-bold">
-                  {p.name[0]}
-                </span>
-                <span className="min-w-0 leading-tight">
-                  <span className="block font-semibold">{p.name}</span>
-                  <span className="block text-xs">{p.who}</span>
-                </span>
-              </div>
-              <p className="mt-3 rounded-2xl bg-raise px-3 py-2 text-sm leading-snug">&ldquo;{p.says}&rdquo;</p>
-              <p className={`mt-2 w-fit rounded-full bg-raise px-2 py-0.5 text-xs font-bold uppercase tracking-wide ${STANCE[p.stance].cls}`}>
-                {STANCE[p.stance].label}
-              </p>
-            </li>
-          ))}
-        </ul>
-        <figcaption className="mt-5 text-center font-hand text-xl text-sub">an example panel for a low-sugar soda</figcaption>
-      </figure>
+      <div className="mt-20 pb-6">
+        <p className="text-center text-sm text-faint">Panelists are built from what real people over-index on</p>
+        <div className="marquee mt-5 flex overflow-hidden">
+          <ul className="flex shrink-0 gap-3 pr-3">
+            {[...SIGNALS, ...SIGNALS].map((s, i) => (
+              <li key={i} aria-hidden={i >= SIGNALS.length} className="whitespace-nowrap rounded-full bg-raise/80 px-4 py-2 text-sm text-sub shadow-sm">
+                {s}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </section>
   );
 }

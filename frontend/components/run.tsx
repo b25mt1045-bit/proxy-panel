@@ -65,7 +65,7 @@ export function PageHead({ kicker, title, children }: { kicker: string; title: R
   return (
     <div>
       <p className="font-hand text-3xl text-pop">{kicker}</p>
-      <h1 className="mt-1 font-serif text-[clamp(2rem,5vw,3.3rem)] font-bold leading-[1.05] tracking-[-0.02em]">{title}</h1>
+      <h1 className="mt-1 font-serif text-[clamp(2rem,5vw,3.3rem)] leading-[1.05] tracking-[-0.02em]">{title}</h1>
       {children && <div className="mt-4 max-w-[60ch] text-lg leading-relaxed text-sub">{children}</div>}
     </div>
   );
@@ -75,7 +75,7 @@ export function Notice({ children, tone = "warn" }: { children: ReactNode; tone?
   return (
     <div
       role={tone === "error" ? "alert" : "status"}
-      className={`flex gap-3 rounded-2xl border-2 border-text px-4 py-3 text-[15px] ${tone === "error" ? "bg-tomato/30" : "bg-sun/40"}`}
+      className={`flex gap-3 rounded-2xl border border-line-2 px-4 py-3 text-[15px] ${tone === "error" ? "bg-tomato/30" : "bg-sun/40"}`}
     >
       <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" strokeWidth={2.25} />
       <div className="min-w-0">{children}</div>
@@ -103,7 +103,7 @@ export function StanceMeter({ scaled, label, rank, of }: { scaled: number; label
           <span className="font-semibold text-text">{rank === 1 ? "warmest" : rank === of ? "coolest" : `${(["", "1st", "2nd", "3rd"][rank] ?? `${rank}th`)} warmest`}</span> of {of}
         </span>
       </div>
-      <div className="mt-1.5 h-2.5 overflow-hidden rounded-full border-2 border-text bg-raise" aria-hidden>
+      <div className="mt-1.5 h-2.5 overflow-hidden rounded-full border border-line-2 bg-raise" aria-hidden>
         <div className={`h-full ${s.fill}`} style={{ width: `${Math.max(4, scaled * 100)}%` }} />
       </div>
     </div>
@@ -132,7 +132,7 @@ export function ReceiptChip({ r }: { r: Receipt }) {
         role="tooltip"
         id={id}
         hidden={!open}
-        className="absolute bottom-full left-1/2 z-30 mb-2 w-max max-w-60 -translate-x-1/2 rounded-xl border-2 border-text bg-text px-3 py-2 text-left text-xs font-normal leading-relaxed text-ink"
+        className="absolute bottom-full left-1/2 z-30 mb-2 w-max max-w-60 -translate-x-1/2 rounded-xl border border-line-2 bg-text px-3 py-2 text-left text-xs font-normal leading-relaxed text-ink"
       >
         <span className="block font-semibold">
           {typeLabel(r.entity_type)}: {r.entity_name}

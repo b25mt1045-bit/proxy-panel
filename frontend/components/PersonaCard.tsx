@@ -29,7 +29,7 @@ export function panelLook(personas: Persona[]) {
 export function Avatar({ name, fill, size = "md" }: { name: string; fill: string; size?: "sm" | "md" | "lg" }) {
   const s = size === "sm" ? "size-7 text-sm" : size === "lg" ? "size-11 text-lg" : "size-9";
   return (
-    <span aria-hidden className={`flex ${s} shrink-0 items-center justify-center rounded-full border-2 border-text ${fill} font-serif font-bold`}>
+    <span aria-hidden className={`flex ${s} shrink-0 items-center justify-center rounded-full border border-line-2 ${fill} font-serif font-bold`}>
       {name[0]}
     </span>
   );
@@ -62,7 +62,7 @@ export function PersonaCard({
   const H = headingLevel === 2 ? "h2" : "h3";
   return (
     <div className="sticker flex h-full flex-col rounded-3xl bg-raise">
-      <div className={`rounded-t-[22px] border-b-2 border-text ${fill} p-5`}>
+      <div className={`rounded-t-[22px] border-b border-line ${fill} p-5`}>
         <div className="flex items-center gap-3">
           <Avatar name={p.name} fill="bg-raise" size="lg" />
           <div className="min-w-0">
@@ -123,7 +123,7 @@ function Bubble({
     ) : null;
   const pick = variantName(s.preferred_variant);
   return (
-    <figure className={`rounded-2xl border-2 border-text px-4 py-3 ${round === 2 ? "bg-lilac/40" : "bg-bg"}`}>
+    <figure className={`rounded-2xl border border-line-2 px-4 py-3 ${round === 2 ? "bg-lilac/40" : "bg-bg"}`}>
       <figcaption className="mb-1.5 flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-sub">
         Round {round}
         {pick && <span className="rounded-full border border-text bg-raise px-2 py-px normal-case tracking-normal text-text">picks {pick}</span>}

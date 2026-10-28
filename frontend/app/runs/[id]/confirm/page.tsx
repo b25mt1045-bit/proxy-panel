@@ -103,7 +103,7 @@ export default function ConfirmPage() {
       <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_19rem]">
         <section aria-labelledby="brands-head" className="sticker rounded-3xl bg-raise p-5 sm:p-8">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 id="brands-head" className="font-serif text-2xl font-bold">
+            <h2 id="brands-head" className="font-serif text-2xl">
               Comparable brands
             </h2>
             <p className={`text-sm tabular-nums ${rows.length < MIN ? "font-semibold text-skeptic" : "text-sub"}`}>
@@ -154,7 +154,7 @@ export default function ConfirmPage() {
         </section>
 
         <aside className="grid content-start gap-6">
-          <section aria-labelledby="brief-sum" className="rounded-3xl border-2 border-text bg-peach/50 p-5">
+          <section aria-labelledby="brief-sum" className="rounded-3xl border border-line-2 bg-peach/50 p-5">
             <h2 id="brief-sum" className="text-xs font-bold uppercase tracking-wide">
               Your brief
             </h2>
@@ -249,7 +249,7 @@ function BrandRow({
     : !priceOk(row.price) ? "Enter a price from $0.01 to $10,000."
     : null;
   return (
-    <li className="rounded-2xl border-2 border-text bg-bg p-4">
+    <li className="rounded-2xl border border-line-2 bg-bg p-4">
       <div className="flex items-start justify-between gap-3">
         <h3 className="min-w-0 truncate pt-1 text-lg font-semibold">{row.name}</h3>
         <button
@@ -392,7 +392,7 @@ function AddBrand({ taken, onAdd }: { taken: Set<string>; onAdd: (b: { qloo_id: 
                   setQ("");
                   input.current?.focus();
                 }}
-                className="inline-flex items-center gap-1.5 rounded-full border-2 border-text bg-raise px-3 py-1.5 text-sm font-semibold hover:bg-mint"
+                className="inline-flex items-center gap-1.5 rounded-full border border-line-2 bg-raise px-3 py-1.5 text-sm font-semibold hover:bg-mint"
               >
                 <Plus aria-hidden className="size-3.5" strokeWidth={2.5} />
                 {r.name}

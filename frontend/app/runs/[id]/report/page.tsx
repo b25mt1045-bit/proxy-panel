@@ -60,7 +60,7 @@ export default function ReportPage() {
             <button
               type="button"
               onClick={() => window.print()}
-              className="inline-flex shrink-0 items-center gap-2 rounded-full border-2 border-text bg-raise px-4 py-2 text-sm font-semibold hover:bg-sun"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-line-2 bg-raise px-4 py-2 text-sm font-semibold hover:bg-sun"
             >
               <Download aria-hidden className="size-4" />
               Download PDF
@@ -111,7 +111,7 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
     <div className="grid gap-14 print:gap-10">
       <section aria-labelledby="verdict" className="sticker rounded-3xl bg-sun p-6 sm:p-10">
         <p className="font-hand text-3xl">the verdict</p>
-        <h1 id="verdict" className="mt-1 max-w-[24ch] font-serif text-[clamp(2rem,5vw,3.4rem)] font-bold leading-[1.05] tracking-[-0.02em]">
+        <h1 id="verdict" className="mt-1 max-w-[24ch] font-serif text-[clamp(2rem,5vw,3.4rem)] leading-[1.05] tracking-[-0.02em]">
           {v.sentence}
         </h1>
         <div className="mt-6 flex flex-wrap gap-3 text-sm">
@@ -129,7 +129,7 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
       {look.of > 0 && (
         <section aria-labelledby="panel-strip">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h2 id="panel-strip" className="font-serif text-2xl font-bold">
+            <h2 id="panel-strip" className="font-serif text-2xl">
               Your panel
             </h2>
             <p className="text-sm text-sub print:hidden">Tap anyone to see who they are and what they said.</p>
@@ -140,7 +140,7 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
                 <button
                   type="button"
                   onClick={() => setWho(p)}
-                  className="flex h-full w-full items-center gap-2.5 rounded-2xl border-2 border-text bg-raise p-3 text-left transition-transform hover:-translate-y-0.5"
+                  className="flex h-full w-full items-center gap-2.5 rounded-2xl border border-line-2 bg-raise p-3 text-left transition-transform hover:-translate-y-0.5"
                 >
                   <Avatar name={p.name} fill={look.fill(p.id)} />
                   <span className="min-w-0 leading-tight">
@@ -182,12 +182,12 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
           {segments.map((s) => {
             const win = s.index === v.segment_index;
             return (
-              <li key={s.index} className={`rounded-2xl border-2 border-text p-4 sm:p-5 ${win ? "bg-mint/50" : "bg-raise"}`}>
+              <li key={s.index} className={`rounded-2xl border border-line-2 p-4 sm:p-5 ${win ? "bg-mint/50" : "bg-raise"}`}>
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h3 className="text-lg font-semibold">
                     {s.label}
                     {win && (
-                      <span className="ml-2 rounded-full border-2 border-text bg-sun px-2 py-0.5 align-middle text-xs font-bold uppercase tracking-wide">Launch here</span>
+                      <span className="ml-2 rounded-full border border-line-2 bg-sun px-2 py-0.5 align-middle text-xs font-bold uppercase tracking-wide">Launch here</span>
                     )}
                   </h3>
                   <p className="text-sm text-sub">
@@ -199,7 +199,7 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
                         : `your price suits ${Math.round(s.price_fit_share * 100)}% of them`}
                   </p>
                 </div>
-                <div className="mt-3 h-4 overflow-hidden rounded-full border-2 border-text bg-bg" aria-hidden>
+                <div className="mt-3 h-4 overflow-hidden rounded-full border border-line-2 bg-bg" aria-hidden>
                   <div className={`h-full ${win ? "bg-enthusiast" : "bg-sky"}`} style={{ width: `${Math.max(3, s.mean_scaled * 100)}%` }} />
                 </div>
                 {s.top_comparables.length > 0 && (
@@ -231,8 +231,8 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
         ) : (
           <ol className="grid gap-4">
             {rep.objections.map((o, i) => (
-              <li key={i} className="flex gap-4 rounded-2xl border-2 border-text bg-raise p-4 sm:p-5">
-                <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-full border-2 border-text bg-peach font-serif font-bold">
+              <li key={i} className="flex gap-4 rounded-2xl border border-line-2 bg-raise p-4 sm:p-5">
+                <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-full border border-line-2 bg-peach font-serif">
                   {i + 1}
                 </span>
                 <div className="min-w-0">
@@ -301,10 +301,10 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
         <Section n={++n} id="variants" title="Which version wins" hint="How each version did in every segment.">
           <div className="grid gap-4 sm:grid-cols-2">
             {rep.variants.map((vr) => (
-              <div key={vr.key} className={`rounded-2xl border-2 border-text p-5 ${vr.key === v.variant ? "bg-mint/50" : "bg-raise"}`}>
+              <div key={vr.key} className={`rounded-2xl border border-line-2 p-5 ${vr.key === v.variant ? "bg-mint/50" : "bg-raise"}`}>
                 <h3 className="flex flex-wrap items-center gap-2 text-lg font-semibold">
                   Version {vr.key}
-                  {vr.key === v.variant && <span className="rounded-full border-2 border-text bg-sun px-2 py-0.5 text-xs font-bold uppercase tracking-wide">The pick</span>}
+                  {vr.key === v.variant && <span className="rounded-full border border-line-2 bg-sun px-2 py-0.5 text-xs font-bold uppercase tracking-wide">The pick</span>}
                 </h3>
                 <p className="text-sm text-sub">Priced as {TIER[vr.tier]}</p>
                 <ul className="mt-3 grid gap-2 text-sm">
@@ -332,7 +332,7 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
         >
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {love.map(([type, items]) => (
-              <div key={type} className="rounded-2xl border-2 border-text bg-raise p-4">
+              <div key={type} className="rounded-2xl border border-line-2 bg-raise p-4">
                 <h3 className="text-xs font-bold uppercase tracking-wide">{typeLabel(type)}</h3>
                 <ol className="mt-2 grid list-decimal gap-1 pl-5 text-sm">
                   {items.map((it) => (
@@ -351,7 +351,7 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
         <Interview iv={rep.interview} />
       </Section>
 
-      <footer className="grid gap-3 border-t-2 border-text pt-6 text-sm text-sub">
+      <footer className="grid gap-3 border-t border-line pt-6 text-sm text-sub">
         <p>
           Built from {g.qloo_calls + g.qloo_cache_hits} lookups of Qloo taste data: what people like each panelist buy, watch and listen to, compared with
           people in general.{" "}
@@ -449,7 +449,7 @@ function PersonDialog({ p, onClose, render }: { p: Persona | null; onClose: () =
             autoFocus
             onClick={() => ref.current?.close()}
             aria-label="Close"
-            className="absolute right-3 top-3 z-10 flex size-9 items-center justify-center rounded-full border-2 border-text bg-raise hover:bg-sun"
+            className="absolute right-3 top-3 z-10 flex size-9 items-center justify-center rounded-full border border-line-2 bg-raise hover:bg-sun"
           >
             <X aria-hidden className="size-4" strokeWidth={2.5} />
           </button>
@@ -468,7 +468,7 @@ function Section({ n, id, title, hint, children }: { n: number; id: string; titl
           {n}.
         </span>
         <div>
-          <h2 id={id} className="font-serif text-[clamp(1.6rem,3.5vw,2.2rem)] font-bold leading-tight">
+          <h2 id={id} className="font-serif text-[clamp(1.6rem,3.5vw,2.2rem)] leading-tight">
             {title}
           </h2>
           <p className="mt-1 max-w-[62ch] text-sub">{hint}</p>
@@ -480,7 +480,7 @@ function Section({ n, id, title, hint, children }: { n: number; id: string; titl
 }
 
 function Pill({ className, children }: { className: string; children: ReactNode }) {
-  return <span className={`rounded-full border-2 border-text px-3 py-1 font-semibold ${className}`}>{children}</span>;
+  return <span className={`rounded-full border border-line-2 px-3 py-1 font-semibold ${className}`}>{children}</span>;
 }
 
 /** One row per panelist: their band across the four tiers, with your price as a vertical line. */
@@ -488,7 +488,7 @@ function PriceBands({ bands, fill }: { bands: Report["price_bands"]; fill?: (id:
   const pos = (tier: number) => ((tier - 1) / 3) * 100; // tier 1..4 → 0..100%
   const fits = bands.personas.filter((p) => p.fit).length;
   return (
-    <div className="rounded-2xl border-2 border-text bg-raise p-4 sm:p-6">
+    <div className="rounded-2xl border border-line-2 bg-raise p-4 sm:p-6">
       <p className="mb-5 font-semibold">
         Your price fits {fits} of {bands.personas.length} panelists.
       </p>
@@ -515,7 +515,7 @@ function PriceBands({ bands, fill }: { bands: Report["price_bands"]; fill?: (id:
             <div className="relative h-6 rounded-full bg-bg">
               <div className="absolute -inset-y-1 w-0.5 bg-text" style={{ left: `${pos(bands.concept_tier)}%` }} aria-hidden />
               <div
-                className={`absolute inset-y-1 rounded-full border-2 border-text ${p.weak ? "border-dashed" : p.fit ? "bg-mint" : "bg-peach"}`}
+                className={`absolute inset-y-1 rounded-full border border-line-2 ${p.weak ? "border-dashed" : p.fit ? "bg-mint" : "bg-peach"}`}
                 style={{ left: `${pos(p.lo)}%`, width: `max(${pos(p.hi) - pos(p.lo)}%, 0.75rem)` }}
                 aria-hidden
               />
@@ -539,7 +539,7 @@ function PriceBands({ bands, fill }: { bands: Report["price_bands"]; fill?: (id:
 function Interview({ iv }: { iv: Report["interview"] }) {
   const text = `Who to recruit: ${iv.recruit}\nScreen for: ${iv.markers.join(", ")}\n\n${iv.questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}`;
   return (
-    <div className="rounded-2xl border-2 border-text bg-lilac/40 p-5 sm:p-6">
+    <div className="rounded-2xl border border-line-2 bg-lilac/40 p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-[62ch]">
           <h3 className="text-xs font-bold uppercase tracking-wide">Who to recruit</h3>
@@ -569,7 +569,7 @@ function CopyButton({ text, idle, done, icon }: { text: () => string; idle: stri
     <button
       type="button"
       onClick={() => navigator.clipboard.writeText(text()).then(() => setCopied(true), () => {})}
-      className="inline-flex shrink-0 items-center gap-2 rounded-full border-2 border-text bg-raise px-4 py-2 text-sm font-semibold hover:bg-sun"
+      className="inline-flex shrink-0 items-center gap-2 rounded-full border border-line-2 bg-raise px-4 py-2 text-sm font-semibold hover:bg-sun"
     >
       {copied ? <Check aria-hidden className="size-4" /> : icon}
       <span aria-live="polite">{copied ? done : idle}</span>

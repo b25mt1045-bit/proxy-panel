@@ -1,32 +1,34 @@
 @import "tailwindcss";
 
-/* Sticker: warm cream paper, near-black ink, bright sticker colours for fun. Stance colours always travel with a label. */
+/* Calm (after twain.ai): cool off-white, deep ink, one blue accent, soft pastel cards. Stance colours always travel with a label. */
 @theme {
-  --color-bg: #f7f4ed;
+  --color-bg: #f6f8f8;
   --color-raise: #ffffff; /* fields, cards */
-  --color-line: #e4dfd4; /* hairlines */
-  --color-line-2: #cfcac0; /* field borders */
-  --color-text: #0f0f0f;
-  --color-sub: #42423a; /* 9.6:1 on bg */
-  --color-faint: #66655d; /* 5.3:1 */
-  --color-pop: #1f5fd6; /* links, focus, the primary action hover. 5.3:1 */
-  --color-ink: #f7f4ed; /* text on dark or pop */
-  /* Sticker fills, always under dark text */
-  --color-sky: #9cc9f2;
-  --color-sun: #f0cd3e;
-  --color-mint: #a8e0c4;
-  --color-peach: #fcd3ac;
-  --color-tomato: #ff7a52;
-  --color-lilac: #cdbdf5;
+  --color-line: #e2e7e8; /* hairlines */
+  --color-line-2: #cdd4d7; /* field borders */
+  --color-text: #0b1a24;
+  --color-sub: #3b4852; /* 9:1 on bg */
+  --color-faint: #5b6770; /* 5.6:1 */
+  --color-pop: #275fce; /* links, focus, accents. 5.4:1 */
+  --color-ink: #fcfcfc; /* text on dark or pop */
+  /* Soft pastel fills, always under dark text */
+  --color-sky: #dbe9f8;
+  --color-sun: #f7ebc2;
+  --color-mint: #d8f1e0;
+  --color-peach: #f8e3d1;
+  --color-tomato: #f4cdc8;
+  --color-lilac: #e5e7fa;
   --color-enthusiast: #0b7a55;
   --color-conditional: #8a5f00;
   --color-skeptic: #c2410c;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-averia), ui-serif, Georgia, serif;
-  --font-hand: var(--font-caveat), cursive;
+  --font-serif: var(--font-slab), ui-serif, Georgia, serif;
+  --font-hand: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --animate-fill: fill 18s var(--ease-out-expo) forwards;
   --animate-float: float 5s ease-in-out infinite;
+  --animate-rise: rise 0.9s cubic-bezier(0.33, 1, 0.68, 1) both;
+  --animate-word-in: word-in 0.5s ease-out both;
   @keyframes fill {
     from {
       transform: scaleX(0);
@@ -40,12 +42,152 @@
       transform: translateY(-6px);
     }
   }
+  /* Blur up and fade, word by word or block by block (stagger with animation-delay). */
+  @keyframes rise {
+    from {
+      filter: blur(8px);
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      filter: blur(0);
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes word-in {
+    from {
+      filter: blur(4px);
+      opacity: 0;
+      transform: translateY(0.3em);
+    }
+  }
 }
 
-/* The sticker look: thick ink border with a hard offset shadow. */
+/* A soft card: hairline border, white top edge, low diffuse shadow. Name kept so every page picks it up. */
 @utility sticker {
-  border: 2px solid var(--color-text);
-  box-shadow: 4px 4px 0 0 var(--color-text);
+  border: 1px solid rgb(11 26 36 / 0.08);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.7),
+    0 1px 2px rgb(11 26 36 / 0.05),
+    0 12px 32px -12px rgb(11 26 36 / 0.14);
+}
+
+/* Blue text with a light band that sweeps across once. Rests fully blue at both ends. */
+.shine {
+  background: linear-gradient(100deg, var(--color-pop) 33%, #a8c0f4 50%, var(--color-pop) 67%) 100% 0 / 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@keyframes shine {
+  to {
+    background-position: 0 0;
+  }
+}
+@keyframes read {
+  from {
+    color: var(--color-line-2);
+  }
+}
+@keyframes reveal {
+  from {
+    filter: blur(10px);
+    opacity: 0;
+    transform: translateY(48px) scale(0.97);
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes drift {
+  50% {
+    transform: translate(6%, -4%) scale(1.08);
+  }
+}
+@keyframes bubble {
+  from {
+    filter: blur(4px);
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+}
+@keyframes dot {
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+@keyframes mark {
+  from {
+    background-size: 0% 100%;
+  }
+}
+.mark {
+  background: linear-gradient(var(--color-tomato), var(--color-tomato)) no-repeat 0 0 / 100% 100%;
+  border-radius: 0.2em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+@keyframes word-out {
+  to {
+    filter: blur(4px);
+    opacity: 0;
+    transform: translateY(-0.3em);
+  }
+}
+.marquee {
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.typing-dot {
+  opacity: 0.3;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .shine {
+    animation: shine 2.2s ease-in-out 0.9s both;
+  }
+  .marquee > * {
+    animation: marquee 40s linear infinite;
+  }
+  .marquee:hover > * {
+    animation-play-state: paused;
+  }
+  .drift {
+    animation: drift 14s ease-in-out infinite;
+  }
+  .bubble {
+    animation: bubble 0.5s cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+  .typing-dot {
+    animation: dot 1s ease-in-out infinite;
+  }
+  .word-out {
+    animation: word-out 0.35s ease-in both;
+  }
+  @supports (animation-timeline: view()) {
+    /* Blocks blur up into place as they scroll in. */
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 28%;
+    }
+    /* The highlight sweeps across the phrase as it scrolls into view. */
+    .mark {
+      animation: mark linear both;
+      animation-timeline: view();
+      animation-range: entry 90% cover 45%;
+    }
+  }
+  /* Words go from grey to ink as they scroll up the page. Browsers without scroll timelines just show ink. */
+  @supports (animation-timeline: view()) {
+    .read-word {
+      animation: read linear both;
+      animation-timeline: view();
+      animation-range: entry 80% cover 42%;
+    }
+  }
 }
 
 @layer base {
@@ -64,7 +206,7 @@
     caret-color: var(--color-pop);
   }
   ::selection {
-    background: var(--color-sun);
+    background: var(--color-lilac);
     color: var(--color-text);
   }
   :focus-visible {
@@ -76,7 +218,7 @@
   }
 }
 
-/* Print, and the report's "Download PDF": keep the sticker fills and don't split a card across pages. */
+/* Print, and the report's "Download PDF": keep the card fills and don't split a card across pages. */
 @media print {
   @page {
     margin: 14mm;

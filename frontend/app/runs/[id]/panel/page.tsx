@@ -85,7 +85,7 @@ function Panel({ onResumed }: { onResumed: () => void }) {
         {s.done && (
           <div className="sticker flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-mint px-6 py-5">
             <p className="text-lg">
-              <span className="font-serif text-2xl font-bold">Your report is ready.</span>{" "}
+              <span className="font-serif text-2xl">Your report is ready.</span>{" "}
               <span className="text-sub">Who to launch to, what puts people off, and what they&apos;d pay.</span>
             </p>
             <Link
@@ -137,7 +137,7 @@ function Panel({ onResumed }: { onResumed: () => void }) {
           </details>
         )}
         {s.moderator && (
-          <section aria-label="Moderator" className="flex gap-4 rounded-3xl border-2 border-text bg-lilac/60 p-5">
+          <section aria-label="Moderator" className="flex gap-4 rounded-3xl border border-line-2 bg-lilac/60 p-5">
             <MessagesSquare aria-hidden className="mt-1 size-6 shrink-0" />
             <div>
               <p className="font-semibold">

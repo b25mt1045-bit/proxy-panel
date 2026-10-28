@@ -159,6 +159,13 @@ export function BriefForm() {
       .catch(() => setExamples([]));
   }, []);
 
+  // The hero's input hands its text over here (see HeroInput).
+  useEffect(() => {
+    const fill = (e: Event) => setForm((f) => ({ ...f, description: (e as CustomEvent<string>).detail }));
+    window.addEventListener("brief:prefill", fill);
+    return () => window.removeEventListener("brief:prefill", fill);
+  }, []);
+
   const update = (patch: Partial<Form>, clear: string[] = []) => {
     setForm((f) => ({ ...f, ...patch }));
     if (clear.some((k) => errors[k])) setErrors((e) => Object.fromEntries(Object.entries(e).filter(([k]) => !clear.includes(k))));
@@ -202,8 +209,8 @@ export function BriefForm() {
     <section id="brief" aria-labelledby="brief-head" className="scroll-mt-16">
       <div className="mx-auto grid max-w-6xl gap-x-12 gap-y-10 px-5 pb-24 pt-20 sm:px-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
         <div className="lg:col-span-2">
-          <p className="font-hand text-3xl text-pop">your turn!</p>
-          <h2 id="brief-head" className="mt-1 font-serif text-[clamp(2.2rem,5vw,3.6rem)] font-bold leading-[1.05] tracking-[-0.02em] text-text">
+          <p className="w-fit rounded-md bg-pop/10 px-2 py-0.5 text-sm font-medium text-pop">Your turn</p>
+          <h2 id="brief-head" className="mt-1 font-serif text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] text-text">
             Tell us about your product.
           </h2>
           <p id="brief-intro" className="mt-4 max-w-[56ch] text-lg leading-relaxed text-sub">
@@ -452,7 +459,7 @@ export function BriefForm() {
             <button
               type="submit"
               disabled={submitting}
-              className="group relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden sticker rounded-full bg-sun text-base font-semibold text-text transition-transform duration-300 hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-progress disabled:bg-raise disabled:text-sub"
+              className="group relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden rounded-2xl bg-text text-base font-medium text-ink shadow-lg shadow-text/15 hover:bg-pop transition-transform duration-300 hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-progress disabled:bg-raise disabled:text-sub"
             >
               {submitting && (
                 <span aria-hidden className="absolute inset-0 origin-left animate-fill bg-pop/15 motion-reduce:hidden" />
@@ -532,7 +539,7 @@ function Measured() {
   const rows: [string, string][] = [
     ["Stance", "Qloo affinity to the comparable brands"],
     ["Price band", "Price tiers of the brands they over-index on"],
-    ["Every line", "Cites a Qloo receipt, checked before you see it"],
+    ["Every line", "Cites Qloo data, checked before you see it"],
   ];
   return (
     <section aria-labelledby="measured-head">
@@ -591,11 +598,11 @@ function Cue({
       <div>
         <span
           aria-hidden
-          className={`flex size-10 items-center justify-center rounded-full border-2 border-text font-serif text-lg font-bold ${CUE_BG[(n - 1) % CUE_BG.length]}`}
+          className={`flex size-10 items-center justify-center rounded-full border border-line-2 font-serif text-lg font-bold ${CUE_BG[(n - 1) % CUE_BG.length]}`}
         >
           {n}
         </span>
-        <Title htmlFor={htmlFor} className="mt-3 block font-serif text-2xl font-bold text-text">
+        <Title htmlFor={htmlFor} className="mt-3 block font-serif text-2xl text-text">
           {title}
           {meta && <span className="ml-2 text-sm text-faint">{meta}</span>}
         </Title>
