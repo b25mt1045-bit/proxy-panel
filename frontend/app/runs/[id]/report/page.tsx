@@ -110,8 +110,8 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
   return (
     <div className="grid gap-14 print:gap-10">
       <section aria-labelledby="verdict" className="sticker rounded-3xl bg-sun p-6 sm:p-10">
-        <p className="font-hand text-3xl">the verdict</p>
-        <h1 id="verdict" className="mt-1 max-w-[24ch] font-serif text-[clamp(2rem,5vw,3.4rem)] leading-[1.05] tracking-[-0.02em]">
+        <p className="text-center font-hand text-4xl sm:text-5xl">The Verdict</p>
+        <h1 id="verdict" className="mt-1 font-serif text-[clamp(2rem,5vw,3.4rem)] leading-[1.05] tracking-[-0.02em]">
           {v.sentence}
         </h1>
         <div className="mt-6 flex flex-wrap gap-3 text-sm">

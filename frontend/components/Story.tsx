@@ -16,12 +16,12 @@ export function Story() {
     <section className="px-3 py-8 sm:px-4">
       <div className="mx-auto max-w-7xl rounded-[48px] bg-[#e9eeee] px-6 py-20 sm:rounded-[80px] sm:px-12 sm:py-32">
         <div className="mx-auto max-w-4xl">
-          <h2 className="reveal font-serif text-[clamp(2.2rem,5.4vw,4.4rem)] leading-[1.02] tracking-[-0.025em]">
+          <h2 className="reveal text-center font-serif text-[clamp(2.2rem,5.4vw,4.4rem)] leading-[1.02] tracking-[-0.025em]">
             To a launch,
             <br />
             the first buyer is <span className="text-pop">everything</span>
           </h2>
-          <p className="mt-12 text-[clamp(1.4rem,2.7vw,2.3rem)] leading-[1.32] tracking-[-0.01em] [text-wrap:pretty]">
+          <p className="mt-12 text-justify text-[clamp(1.4rem,2.7vw,2.3rem)] leading-[1.32] tracking-[-0.01em] [text-wrap:pretty]">
             {words(BEFORE)}
             <mark className="mark text-inherit">{words(MARKED)}</mark>{" "}
             {words(AFTER)}
