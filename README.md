@@ -8,7 +8,7 @@ A pre-launch focus group for consumer products, built on real taste data. Descri
 - [Product & Technical Spec](<Proxy Panel — Product & Technical Spec.md>): what we're building and why, the scope, validation and build plan.
 - [Technical Design](<Proxy Panel — Technical Design.md>): how each feature is built, including data shapes, prompts, algorithms, tests and deployment.
 
-## Stack (planned)
+## Stack 
 Python 3.12 + FastAPI backend, Next.js + Tailwind frontend, Postgres (SQLite locally). Setup instructions will be added with the code.
 
 ## License
