@@ -218,7 +218,7 @@
   }
 }
 
-/* Print, and the report's "Download PDF": keep the card fills and don't split a card across pages. */
+/* Print, and the report's "Download PDF": keep the card fills; small cards stay whole, tall ones (with a list inside) can split. */
 @media print {
   @page {
     margin: 14mm;
@@ -227,7 +227,7 @@
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  li,
+  li:not(:has(li)),
   blockquote,
   .sticker {
     break-inside: avoid;

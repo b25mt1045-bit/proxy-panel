@@ -459,7 +459,7 @@ function PersonDialog({ p, onClose, render }: { p: Persona | null; onClose: () =
 function Section({ n, id, title, hint, children }: { n: number; id: string; title: string; hint: string; children: ReactNode }) {
   return (
     <section aria-labelledby={id}>
-      <div className="mb-5 flex items-start gap-3">
+      <div className="mb-5 flex items-start gap-3 break-after-avoid">
         <span aria-hidden className="mt-1 font-hand text-3xl leading-none text-pop">
           {n}.
         </span>
