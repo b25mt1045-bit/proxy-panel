@@ -13,7 +13,7 @@ const MIN = 3, MAX = 6;
 
 type Row = { qloo_id: string; name: string; weight: number; price: string; b: number };
 
-const closeness = (w: number) => (w === 0 ? "ignored" : w <= 0.3 ? "a little like it" : w <= 0.7 ? "like it" : "very like it");
+const closeness = (w: number) => (w === 0 ? "ignored" : w <= 0.3 ? "counts a little" : w <= 0.7 ? "counts some" : "counts fully");
 
 function priceOk(raw: string) {
   const n = Number(raw);
@@ -263,8 +263,8 @@ function BrandRow({
       </div>
       <div className="mt-3 grid gap-4 sm:grid-cols-[minmax(0,1fr)_8.5rem]">
         <div className="grid gap-3">
-          <Slider id={`${id}-a`} label={splitB ? `How like ${aName}?` : "How like your product?"} value={row.weight} onChange={(v) => onChange({ weight: v })} />
-          {splitB && <Slider id={`${id}-b`} label={`How like ${bName}?`} value={row.b} onChange={(v) => onChange({ b: v })} />}
+          <Slider id={`${id}-a`} label={splitB ? `How much it counts for ${aName}` : "How much it counts (you set this)"} value={row.weight} onChange={(v) => onChange({ weight: v })} />
+          {splitB && <Slider id={`${id}-b`} label={`How much it counts for ${bName}`} value={row.b} onChange={(v) => onChange({ b: v })} />}
         </div>
         <div>
           <label htmlFor={`${id}-p`} className="block text-xs text-sub">
