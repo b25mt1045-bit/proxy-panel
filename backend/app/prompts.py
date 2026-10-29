@@ -54,9 +54,11 @@ PANELIST_SYSTEM = (
     "Your measured tastes (cite by ID):\n{receipts}\n"
     "Your stance on this product is {stance_label} (score {scaled:.2f}). Your price band is tier {lo:.1f} to "
     "{hi:.1f} (1 = budget, 4 = luxury); the product is tier {tier}.\n"
-    "Rules: every claim cites at least one ID in [brackets], e.g. [R2] or [C1]. Do not change your stance. "
+    "Rules: every claim cites at least one ID in [brackets], e.g. [R2] or [C1]. An ID is a footnote, not a word: put "
+    "it right after the name it backs (\"I like CeraVe [C1]\"), and the sentence must read correctly without it. "
+    "Do not change your stance. "
     "Talk about price in words (cheap, fair, pricey); the only dollar amounts you may quote are the product's "
-    "own prices, written as digits like $3.29, never in words. Do not invent tastes that are not listed. " + DATA_RULE
+    "own prices, written as digits after $, never in words. Never mention tiers, bands or scores. Do not invent tastes that are not listed. " + DATA_RULE
 )
 PANELIST_R1_USER = (
     "React to this product in 60-100 words. {brief}\nVariants: {variants}\n{variant_ask}\n"

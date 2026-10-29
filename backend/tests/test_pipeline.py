@@ -64,3 +64,71 @@ async def test_failure_marks_run_failed(db, monkeypatch):
         run = await s.get(Run, run_id)
     assert run.status == "failed" and run.events[-1] == {"seq": len(run.events), "type": "error",
                                                          "data": {"message": "persona build broke"}}
+
+
+async def test_provider_error_is_not_leaked(db, monkeypatch):
+    q, run_id = await start(db, EXAMPLE_BRIEFS[0])
+
+    async def busy(*a, **k):
+        raise pipeline.LLMError('Gemini 503: {"error": {"code": 503}}')
+
+    monkeypatch.setattr(pipeline.personas, "build", busy)
+    await pipeline.run(db, q, run_id)
+    async with db.session() as s:
+        run = await s.get(Run, run_id)
+    assert run.events[-1]["data"] == {"message": "The language model is busy right now. Please try again in a minute."}
+
+
+async def test_resume_after_report_failure_only_redoes_the_report(db, monkeypatch):
+    q, run_id = await start(db, EXAMPLE_BRIEFS[0])
+    compute = pipeline.report.compute
+
+    async def busy(*a, **k):
+        raise pipeline.LLMError("Gemini 503")
+
+    monkeypatch.setattr(pipeline.report, "compute", busy)
+    await pipeline.run(db, q, run_id)
+    calls = dict(llm._mock_calls)
+    async with db.session() as s:
+        run = await s.get(Run, run_id)
+        assert run.status == "failed"
+        run.status, run.events = "running", [e for e in run.events if e["type"] != "error"]  # what /resume does
+        await s.commit()
+        before = len(run.events)
+
+    monkeypatch.setattr(pipeline.report, "compute", compute)
+    await pipeline.run(db, q, run_id)
+    async with db.session() as s:
+        run = await s.get(Run, run_id)
+        n_personas = await s.scalar(select(func.count()).select_from(Persona))
+        n_stmts = await s.scalar(select(func.count()).select_from(Statement))
+    new = run.events[before:]
+    assert run.status == "done" and run.report
+    assert [e["type"] for e in new] == ["progress", "done"] and new[0]["data"]["step"] == "report"
+    assert [e["seq"] for e in run.events] == list(range(1, len(run.events) + 1))
+    assert n_personas == 6 and n_stmts == 8
+    assert all(llm._mock_calls[k] == calls.get(k, 0) for k in ("personas", "panelist_r1", "moderator", "panelist_r2"))
+
+
+async def test_resume_after_moderator_failure_reuses_round1(db, monkeypatch):
+    q, run_id = await start(db, EXAMPLE_BRIEFS[0])
+    moderate = pipeline.panel.moderate
+
+    async def busy(*a, **k):
+        raise pipeline.LLMError("Gemini 503")
+
+    monkeypatch.setattr(pipeline.panel, "moderate", busy)
+    await pipeline.run(db, q, run_id)
+    r1_calls = llm._mock_calls["panelist_r1"]
+    async with db.session() as s:
+        run = await s.get(Run, run_id)
+        run.status, run.events = "running", [e for e in run.events if e["type"] != "error"]
+        await s.commit()
+
+    monkeypatch.setattr(pipeline.panel, "moderate", moderate)
+    await pipeline.run(db, q, run_id)
+    async with db.session() as s:
+        run = await s.get(Run, run_id)
+        stmts = (await s.scalars(select(Statement))).all()
+    assert run.status == "done" and llm._mock_calls["panelist_r1"] == r1_calls
+    assert len(stmts) == 8 and [e["type"] for e in run.events].count("persona") == 6

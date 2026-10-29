@@ -36,7 +36,7 @@ def check_static(text: str, labels: set[str], band: tuple[float, float], compara
         if not band[0] <= t <= band[1]:
             errs.append(f"price_out_of_band: ${amt} is tier {t}, your band is {band[0]:.1f}-{band[1]:.1f}")
     if m := PRICE_WORDS.search(text):
-        errs.append(f"price_in_words: write \"{m.group(0)}\" as digits, like $3.29")
+        errs.append(f"price_in_words: write \"{m.group(0)}\" as digits")
     if not MIN_WORDS <= (n := len(text.split())) <= MAX_WORDS:
         errs.append(f"length: {n} words")
     return errs

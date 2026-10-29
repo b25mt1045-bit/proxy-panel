@@ -24,8 +24,5 @@ async def check(db: Db, req: Request):
     real = (Run.created_at >= today) & Run.is_example.is_(False)  # example runs never count
     async with db.session() as s:
         spent = await s.scalar(select(func.coalesce(func.sum(Run.llm_cost_usd), 0)).where(real))
-        runs = await s.scalar(select(func.count()).select_from(Run).where(real, Run.client_ip == client_ip(req)))
     if spent >= settings.DAILY_LLM_CAP_USD:
         raise ApiError(503, "examples_only", "Daily demo budget reached; try the examples.")
-    if runs >= settings.RUNS_PER_IP_PER_DAY:
-        raise ApiError(429, "rate_limited", f"{settings.RUNS_PER_IP_PER_DAY} runs per day; try the examples.")

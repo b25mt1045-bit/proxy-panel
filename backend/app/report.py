@@ -16,7 +16,7 @@ from app.qloo import run_ctx
 from app.scoring import concept_tier, price_fit, stance
 
 STRONG_GAP, WEAK_GAP, MAX_SPREAD = 0.15, 0.05, 0.25  # on the scaled 0..1 means; tune on the backtest
-TIER_WORDS = {1: "budget", 2: "mid", 3: "premium", 4: "luxury"}
+TIER_WORDS = {1: "budget", 2: "mid-range", 3: "premium", 4: "luxury"}
 LOVE_TYPES = ["brand", "artist", "tv_show", "podcast"]
 DISCLAIMER = "These are hypotheses about segments and objections, not a sales forecast."
 
@@ -68,9 +68,14 @@ def sensitivity(ps, weights, variants: list[Variant], tiers, prefs, names: dict[
             continue
         new = verdict(ps, w, vs, tiers, prefs)
         if new != base:
-            return {"robust": False, "change": f"Setting {name}'s weight to 0 makes {labels.get(new[0], new[0])} "
-                                               f"with variant {new[1]} the top pick."}
-    return {"robust": True, "change": "No single comparable flips the verdict."}
+            group, version = labels.get(new[0], new[0]), next((v.name for v in variants if v.key == new[1]), new[1])
+            if new[0] == base[0]:
+                change = f"If {name} isn't really a competitor, {version} becomes the better version."
+            else:
+                change = (f"If {name} isn't really a competitor, {group} becomes the better group to launch to"
+                          + (f", with {version}." if len(variants) > 1 else "."))
+            return {"robust": False, "change": change}
+    return {"robust": True, "change": "Removing any one comparable brand doesn't change the pick."}
 
 
 def _love(receipts) -> dict[str, list[dict]]:
@@ -182,7 +187,8 @@ async def compute(db: Db, run_id: str) -> dict:
         "run_id": run_id, "mode": run.mode,
         "verdict": {"segment_index": best, "segment_label": labels[best], "variant": best_v, "tier": tier,
                     "confidence": confidence(scaled_means, [p.stance_scaled for p in by[best]]),
-                    "sentence": f"Launch to {labels[best]} with {name} at tier {tier} ({TIER_WORDS[tier]})."},
+                    "sentence": f"Launch to {labels[best]} with {name.rstrip('.')}, "
+                                f"priced as {TIER_WORDS[tier]} next to your comparable brands."},
         "segments": [{"index": s, "label": labels[s], "mean_stance": round(mean(p.stance_score for p in g), 4),
                       "mean_scaled": round(scaled_means[s], 3),
                       "price_fit_share": round(_fit_share(g, tiers["A"]), 3),

@@ -22,6 +22,7 @@ from app.db import Comparable, Db, QlooCache, Run
 from app.guards import ApiError, check, client_ip
 from app.llm import LLMError
 from app.models import Brief
+from app.presets import EXAMPLE_BRIEFS, PRESETS
 from app.qloo import Qloo, QlooError, run_ctx
 
 _tasks: set[asyncio.Task] = set()  # keeps pipeline tasks alive after the request returns
@@ -178,6 +179,27 @@ async def confirm(run_id: str, body: ComparablesIn, req: Request):
         await s.execute(delete(Comparable).where(Comparable.run_id == run_id))
         s.add_all(Comparable(run_id=run_id, **c.model_dump()) for c in body.comparables)
         await s.commit()
+    return _start(db, req, run_id)
+
+
+@app.post("/runs/{run_id}/resume", status_code=202)
+async def resume(run_id: str, req: Request):
+    """Restarts a failed run at the stage it stopped on; panelists and statements already stored are kept."""
+    db = _db(req)
+    run = await _run(db, run_id)
+    await check(db, req)
+    async with db.session() as s:
+        # The error event goes, so a fresh stream replays the run as if it never stopped.
+        moved = await s.execute(update(Run).where(Run.id == run_id, Run.status == "failed").values(
+            status="running", events=[e for e in run.events if e["type"] != "error"]))
+        if moved.rowcount != 1:
+            await s.rollback()
+            raise ApiError(409, "bad_status", f"Run is {run.status}, not failed.")
+        await s.commit()
+    return _start(db, req, run_id)
+
+
+def _start(db: Db, req: Request, run_id: str) -> dict:
     task = asyncio.create_task(pipeline.run(db, req.app.state.q, run_id))
     _tasks.add(task)
     task.add_done_callback(_tasks.discard)
@@ -239,6 +261,12 @@ async def get_report(run_id: str, req: Request):
     if run.status != "done":
         raise ApiError(409, "bad_status", f"Run is {run.status}; the report is ready once it is done.")
     return run.report or await report.compute(db, run_id)
+
+
+@app.get("/presets")
+async def presets():
+    """Segment presets for the brief form, plus sample briefs it can prefill (input only, not results)."""
+    return {"presets": [{"id": k, "label": v["label"]} for k, v in PRESETS.items()], "sample_briefs": EXAMPLE_BRIEFS}
 
 
 @app.get("/examples")

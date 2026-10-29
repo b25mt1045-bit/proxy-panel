@@ -91,19 +91,41 @@ async def test_full_run_through_the_api(api):
     assert tail.startswith("id: 6\n")
 
 
+async def test_resume_only_restarts_a_failed_run(api, db, monkeypatch):
+    out = await created(api)
+    run = out["run_id"]
+    assert (await api.post(f"/runs/{run}/resume")).json()["error"]["code"] == "bad_status"  # still confirming
+    compute = main.pipeline.report.compute
+
+    async def busy(*a, **k):
+        raise main.LLMError("Gemini 503")
+
+    monkeypatch.setattr(main.pipeline.report, "compute", busy)
+    await api.put(f"/runs/{run}/comparables", json=body(out["comparables"]))
+    await asyncio.gather(*main._tasks)
+    assert (await api.get(f"/runs/{run}")).json()["run"]["status"] == "failed"
+
+    monkeypatch.setattr(main.pipeline.report, "compute", compute)
+    r = await api.post(f"/runs/{run}/resume")
+    assert r.status_code == 202 and r.json()["status"] == "running"
+    await asyncio.gather(*main._tasks)
+    assert (await api.get(f"/runs/{run}")).json()["run"]["status"] == "done"
+    assert "event: error" not in (await api.get(f"/runs/{run}/stream")).text
+    assert (await api.post(f"/runs/{run}/resume")).status_code == 409
+
+
 async def test_unknown_run_is_404(api):
     for path in ("/runs/nope", "/runs/nope/report", "/runs/nope/stream"):
         r = await api.get(path)
         assert r.status_code == 404 and r.json() == {"error": {"code": "run_not_found", "message": "Run not found."}}
 
 
-async def test_guards(api, db):
+async def test_spend_cap(api, db):
     async with db.session() as s:
         s.add_all(Run(id=f"r{i}", status="done", brief=BRIEF, client_ip="127.0.0.1") for i in range(5))
         s.add(Run(id="ex", status="done", brief=BRIEF, client_ip="127.0.0.1", is_example=True, llm_cost_usd=99))
         await s.commit()
-    r = await api.post("/runs", json=BRIEF)
-    assert r.status_code == 429 and r.json()["error"]["code"] == "rate_limited"  # the example run doesn't count
+    assert (await api.post("/runs", json=BRIEF)).status_code == 201  # no per-IP limit; example spend doesn't count
 
     async with db.session() as s:
         s.add(Run(id="big", status="done", brief=BRIEF, client_ip="10.0.0.9", llm_cost_usd=99))
@@ -126,6 +148,12 @@ async def test_startup_fails_runs_left_running(db):
     async with db.session() as s:
         run = await s.get(Run, "r")
     assert run.status == "failed" and run.warnings == ["server restarted"]
+
+
+async def test_presets(api):
+    out = (await api.get("/presets")).json()
+    assert {"id": "genz_urban_fitness", "label": "Gen Z urban fitness"} in out["presets"]
+    assert out["sample_briefs"] == EXAMPLE_BRIEFS
 
 
 async def test_examples_lists_done_example_runs(api, db):

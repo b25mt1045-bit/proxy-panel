@@ -34,7 +34,9 @@ def test_scaled():
 
 
 def test_price():
-    assert concept_tier(3.29, [2.99, 2.49, 3.49]) == 3
+    assert concept_tier(3.29, [2.99, 2.49, 3.49]) == 3  # 3.29 / median 2.99 = 1.10
+    soda = [2.49, 2.49, 2.49, 1.99]  # the live ZESTRA run: $3.00 is 1.2× the median, so premium, not luxury
+    assert [concept_tier(p, soda) for p in (1.50, 2.49, 3.00, 3.49)] == [1, 2, 3, 4]
     band = price_band([(3, 0.12), (4, 0.06), (2, -0.01)])
     assert band == (approx(2.862, abs=1e-3), approx(3.805, abs=1e-3), False)
     assert price_fit(3, band)

@@ -96,11 +96,15 @@ async def run_round(prompt: str, rnd: int, ps: list[BuiltPersona], users: list[s
     return finals
 
 
+def _money(x: float) -> str:
+    return f"{x:.2f}".removesuffix(".00")  # 28.0 → "28", 3.5 → "3.50", so panelists don't write "$28.0"
+
+
 def round1_user(ctx: Context) -> str:
     b = ctx.brief
-    variants = "; ".join(f"{v.key}: {v.name}, {v.positioning or 'no positioning given'}, ${v.price or b.price}"
+    variants = "; ".join(f"{v.key}: {v.name}, {v.positioning or 'no positioning given'}, ${_money(v.price or b.price)}"
                          for v in b.variants)
-    ask = "Say which variant you prefer and why." if len(b.variants) > 1 else "There is only one variant."
+    ask = "Say which variant you prefer and why." if len(b.variants) > 1 else "Don't mention variants."
     return PANELIST_R1_USER.format(brief=fence("brief", b.description), variants=fence("variants", variants),
                                    variant_ask=ask)
 
