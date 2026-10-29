@@ -109,18 +109,18 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
 
   return (
     <div className="grid gap-14 print:gap-10">
-      <section aria-labelledby="verdict" className="sticker rounded-3xl bg-sun p-6 sm:p-10">
-        <p className="text-center font-hand text-4xl sm:text-5xl">The Verdict</p>
+      <section aria-labelledby="verdict" className="sticker rounded-3xl bg-sun p-6 text-center sm:p-10">
+        <p className="font-hand text-4xl sm:text-5xl">The Verdict</p>
         <h1 id="verdict" className="mt-1 font-serif text-[clamp(2rem,5vw,3.4rem)] leading-[1.05] tracking-[-0.02em]">
           {v.sentence}
         </h1>
-        <div className="mt-6 flex flex-wrap gap-3 text-sm">
+        <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm">
           <Pill className={conf.cls}>{conf.label}</Pill>
           <Pill className="bg-raise">
             {g.passed} of {g.total} statements backed by Qloo data ({Math.round(g.rate * 100)}%)
           </Pill>
         </div>
-        <p className="mt-4 max-w-[62ch] leading-relaxed">
+        <p className="mx-auto mt-4 max-w-[62ch] leading-relaxed">
           {conf.why}{" "}
           {rep.sensitivity.robust ? "It holds up: removing any one comparable brand doesn't change the pick." : `Watch out: ${rep.sensitivity.change}`}
         </p>
@@ -192,11 +192,14 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
                   </h3>
                   <p className="text-sm text-sub">
                     <span className="font-semibold text-text">{s.mean_scaled >= 0.67 ? "High" : s.mean_scaled >= 0.34 ? "Some" : "Low"} interest</span> ·{" "}
-                    {s.price_fit_share === 0
-                      ? "your price is outside what they usually pay"
-                      : s.price_fit_share === 1
-                        ? "your price suits all of them"
-                        : `your price suits ${Math.round(s.price_fit_share * 100)}% of them`}
+                    Your price{" "}
+                    <b className="text-text">
+                      {s.price_fit_share === 0
+                        ? "is outside what they usually pay"
+                        : s.price_fit_share === 1
+                          ? "suits all of them"
+                          : `suits ${Math.round(s.price_fit_share * 100)}% of them`}
+                    </b>
                   </p>
                 </div>
                 <div className="mt-3 h-4 overflow-hidden rounded-full border border-line-2 bg-bg" aria-hidden>
@@ -362,13 +365,6 @@ function ReportBody({ rep, id, run }: { rep: Report; id: string; run: RunView | 
         <p className="hidden print:block">
           Full interactive report, with each panelist&apos;s answers: <span className="font-semibold text-text">{window.location.href}</span>
         </p>
-        {g.warnings.length > 0 && (
-          <ul className="grid gap-1">
-            {g.warnings.map((w) => (
-              <li key={w}>Note: {w}</li>
-            ))}
-          </ul>
-        )}
       </footer>
     </div>
   );

@@ -95,7 +95,7 @@ export default function ConfirmPage() {
 
   return (
     <Shell>
-      <PageHead kicker="step two" title="Check the brands we'll compare you with.">
+      <PageHead kicker="Step Two" title="Check the brands we'll compare you with.">
         Panelists who love these brands lean toward your product, and their prices set what counts as cheap or premium. Fix the
         list so it matches who you&apos;d really compete with.
       </PageHead>
