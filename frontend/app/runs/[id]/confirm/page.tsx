@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { Loading, Notice, PageHead, RunSteps } from "@/components/run";
-import { ApiError, getPresets, getRun, putComparables, searchQloo, type RunView } from "@/lib/api";
+import { ApiError, createRun, getPresets, getRun, putComparables, searchQloo, type RunView } from "@/lib/api";
 
 // Same limits as PUT /runs/{id}/comparables; the server stays the authority.
 const MIN = 3, MAX = 6;
@@ -34,9 +34,6 @@ export default function ConfirmPage() {
   useEffect(() => {
     getRun(id)
       .then((r) => {
-        // Only a run waiting for brands belongs here.
-        if (r.run.status === "done") return router.replace(`/runs/${id}/report`);
-        if (r.run.status !== "confirming") return router.replace(`/runs/${id}/panel`);
         setRun(r);
         setRows(r.comparables.map((c) => ({ qloo_id: c.qloo_id, name: c.name, weight: c.weight, price: String(c.price), b: c.weight })));
       })
@@ -60,6 +57,9 @@ export default function ConfirmPage() {
   if (!run) return <Shell><Loading label="Loading your brands…" /></Shell>;
 
   const brief = run.run.brief;
+  // A started run's brands are fixed, so changing them starts a new run with the same brief; the old report stays.
+  const locked = run.run.status !== "confirming";
+  const reached = run.run.status === "done" ? 3 : locked ? 2 : 1;
   const hasB = brief.variants.length > 1;
   const setRow = (i: number, patch: Partial<Row>) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
 
@@ -80,21 +80,22 @@ export default function ConfirmPage() {
     setStarting(true);
     setBanner(null);
     try {
+      const target = locked ? (await createRun(brief)).run_id : id;
       await putComparables(
-        id,
+        target,
         rows.map((r) => ({ qloo_id: r.qloo_id, name: r.name, weight: r.weight, price: Number(r.price) })),
         hasB && splitB ? { B: Object.fromEntries(rows.map((r) => [r.qloo_id, r.b])) } : {},
       );
-      router.push(`/runs/${id}/panel`);
+      router.push(`/runs/${target}/panel`);
     } catch (e) {
       setStarting(false);
-      if (e instanceof ApiError && e.code === "bad_status") return router.replace(`/runs/${id}/panel`); // already started
+      if (!locked && e instanceof ApiError && e.code === "bad_status") return router.replace(`/runs/${id}/panel`); // already started
       setBanner((e as Error).message);
     }
   }
 
   return (
-    <Shell>
+    <Shell reached={reached}>
       <PageHead kicker="Step Two" title="Check the brands we'll compare you with.">
         Panelists who love these brands lean toward your product, and their prices set what counts as cheap or premium. Fix the
         list so it matches who you&apos;d really compete with.
@@ -200,12 +201,15 @@ export default function ConfirmPage() {
             </>
           ) : (
             <>
-              Start the panel <ArrowRight aria-hidden className="size-4" strokeWidth={2.25} />
+              {locked ? "Rerun with these brands" : "Start the panel"} <ArrowRight aria-hidden className="size-4" strokeWidth={2.25} />
             </>
           )}
         </button>
         <p id="start-why" className={blocker ? "font-medium text-skeptic" : "text-sub"}>
-          {blocker ?? "Takes about two minutes. You'll watch the debate live."}
+          {blocker ??
+            (locked
+              ? "This starts a new run with your changes. The current report stays as it is."
+              : "Takes about two minutes. You'll watch the debate live.")}
         </p>
       </div>
       {banner && (
@@ -217,10 +221,10 @@ export default function ConfirmPage() {
   );
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({ children, reached }: { children: React.ReactNode; reached?: number }) {
   return (
     <div className="mx-auto max-w-6xl px-5 pb-24 pt-10 sm:px-8">
-      <RunSteps current={1} />
+      <RunSteps current={1} reached={reached} />
       <div className="mt-8">{children}</div>
     </div>
   );

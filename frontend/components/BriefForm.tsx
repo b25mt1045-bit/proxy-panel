@@ -10,6 +10,7 @@ import {
   createRun,
   getExamples,
   getPresets,
+  getRun,
   type Brief,
   type Category,
   type Example,
@@ -157,6 +158,12 @@ export function BriefForm() {
     getExamples()
       .then((r) => setExamples(r.examples))
       .catch(() => setExamples([]));
+  }, []);
+
+  // "Brief" in a run's step bar links to /?from=<run id>: fill the form from that run so it can be changed and run again.
+  useEffect(() => {
+    const from = new URLSearchParams(window.location.search).get("from");
+    if (from) getRun(from).then((r) => setForm(fromBrief(r.run.brief))).catch(() => {});
   }, []);
 
   // The hero's input hands its text over here (see HeroInput).

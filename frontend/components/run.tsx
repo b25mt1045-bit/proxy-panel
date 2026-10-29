@@ -1,6 +1,8 @@
 "use client";
 
 import { Check, LoaderCircle, TriangleAlert } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Fragment, useId, useState, type ReactNode } from "react";
 
 import type { Receipt, Stance } from "@/lib/api";
@@ -33,25 +35,38 @@ export const likesHowMuch = (lift: number) =>
 export const joinNames = (names: string[]) => (names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`);
 
 const STEPS = ["Brief", "Brands", "Panel", "Report"];
+// Brief opens the home form filled from this run; submitting it (or rerunning from Brands) starts a new run.
+const stepHref = (id: string, i: number) => [`/?from=${id}#brief`, `/runs/${id}/confirm`, `/runs/${id}/panel`, `/runs/${id}/report`][i];
 
-export function RunSteps({ current }: { current: 1 | 2 | 3 }) {
+/** `reached`: the furthest step this run has got to, so earlier (and already finished) steps are links. */
+export function RunSteps({ current, reached = current }: { current: 1 | 2 | 3; reached?: number }) {
+  const { id } = useParams<{ id: string }>();
   return (
     <nav aria-label="Progress">
       <ol className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
         {STEPS.map((s, i) => {
-          const state = i < current ? "done" : i === current ? "now" : "next";
+          const state = i === current ? "now" : i <= reached ? "done" : "next";
+          const cls = `flex items-center gap-1.5 rounded-full border-2 px-3 py-1 font-semibold ${
+            state === "now" ? "border-text bg-sun" : state === "done" ? "border-text bg-raise" : "border-line-2 text-faint"
+          }`;
+          const body = (
+            <>
+              {state === "done" ? <Check aria-hidden className="size-3.5" strokeWidth={3} /> : <span aria-hidden>{i + 1}</span>}
+              {s}
+              {state === "done" && <span className="sr-only">(done)</span>}
+            </>
+          );
           return (
             <Fragment key={s}>
               {i > 0 && <li aria-hidden className="h-0.5 w-4 bg-line-2 sm:w-8" />}
-              <li
-                aria-current={state === "now" ? "step" : undefined}
-                className={`flex items-center gap-1.5 rounded-full border-2 px-3 py-1 font-semibold ${
-                  state === "now" ? "border-text bg-sun" : state === "done" ? "border-text bg-raise" : "border-line-2 text-faint"
-                }`}
-              >
-                {state === "done" ? <Check aria-hidden className="size-3.5" strokeWidth={3} /> : <span aria-hidden>{i + 1}</span>}
-                {s}
-                {state === "done" && <span className="sr-only">(done)</span>}
+              <li aria-current={state === "now" ? "step" : undefined}>
+                {state === "done" ? (
+                  <Link href={stepHref(id, i)} className={`${cls} transition-colors hover:bg-sun`}>
+                    {body}
+                  </Link>
+                ) : (
+                  <span className={cls}>{body}</span>
+                )}
               </li>
             </Fragment>
           );

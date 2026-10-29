@@ -54,7 +54,7 @@ function Panel({ onResumed }: { onResumed: () => void }) {
 
   return (
     <div className="mx-auto max-w-6xl px-5 pb-24 pt-10 sm:px-8">
-      <RunSteps current={2} />
+      <RunSteps current={2} reached={s.done ? 3 : 2} />
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
         <PageHead kicker="Step Three" title={s.done ? "The panel has spoken." : s.error ? "The panel stopped." : "The panel is talking."}>
           {brief ? <span className="line-clamp-2">“{brief.description}”</span> : "Six shoppers built from Qloo taste data react to your product."}
