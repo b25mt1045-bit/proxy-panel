@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import JSON, Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.engine import URL, make_url
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -102,10 +103,22 @@ class QlooCache(Base):
     fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+def db_url(raw: str) -> URL:
+    """Accepts a Postgres URL as Neon gives it (postgresql://…?sslmode=require&channel_binding=require):
+    asyncpg needs the +asyncpg driver and `ssl=` instead of libpq's `sslmode`/`channel_binding`."""
+    u = make_url(raw)
+    if u.get_backend_name() != "postgresql":
+        return u
+    q = dict(u.query)
+    ssl = q.pop("sslmode", None)
+    q.pop("channel_binding", None)
+    return u.set(drivername="postgresql+asyncpg", query=q | ({"ssl": ssl} if ssl else {}))
+
+
 class Db:
     def __init__(self, url: str):
         # Use a SQLite file, not :memory: — an in-memory DB shares one connection, and concurrent writes then clobber each other.
-        self.engine = create_async_engine(url)
+        self.engine = create_async_engine(db_url(url))
         self.session = async_sessionmaker(self.engine, expire_on_commit=False)
 
     async def create_all(self):

@@ -1,0 +1,36 @@
+# Render Blueprint: New → Blueprint → pick this repo. Free plan; secrets are typed in on Render, never committed.
+services:
+  - type: web
+    name: proxy-panel-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install uv && uv sync --frozen
+    startCommand: uv run --frozen uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /examples
+    # One instance only: the live stream tails in-process queues (see CLAUDE.md).
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: QLOO_API_KEY
+        sync: false
+      - key: QLOO_BASE_URL
+        value: https://hackathon.api.qloo.com
+      - key: QLOO_MOCK
+        value: "0"
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_SMALL
+        value: gemini-3.5-flash-lite
+      - key: LLM_BIG
+        value: gemini-3.5-flash
+      - key: LLM_MOCK
+        value: "0"
+      - key: DATABASE_URL
+        sync: false
+      - key: DAILY_LLM_CAP_USD
+        value: "5"
+      - key: TRUST_PROXY
+        value: "true"
+      - key: CORS_ORIGINS
+        sync: false
